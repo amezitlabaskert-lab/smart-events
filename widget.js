@@ -46,7 +46,7 @@
         const rulesRes = await fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json');
         const rules = await rulesRes.json();
         
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=47.62&longitude=19.52&daily=temperature_2m_min,wind_speed_10m_max,precipitation_sum&timezone=auto`);
+        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=47.5136&longitude=19.3735&daily=temperature_2m_min,wind_speed_10m_max,precipitation_sum&timezone=auto`);
         const weather = await weatherRes.json();
 
         const widgetDiv = document.getElementById('smart-garden-widget');
@@ -114,3 +114,4 @@
         widgetDiv.innerHTML = htmlContent;
     } catch (e) { console.error(e); }
 })();
+
