@@ -1,17 +1,17 @@
 [
   {
-  "id": "mersekelt-fagy",
-  "name": "❄️ Mérsékelt fagy várható",
-  "type": "alert",
-  "conditions": { "temp_below": 0 },
-  "seasons": [{ "start": "11-01", "end": "03-31" }],
-  "plants": [
-    "Közönséges füge (Ficus carica)",
-    "Babérmeggy (Prunus laurocerasus)",
-    "Örökzöld díszcserjék"
-  ],
-  "message": "A hőmérséklet -5°C alá süllyed. Érdemes ellenőrizni a fiatal növények takarását és az örökzöldek vízellátottságát!"
-},
+    "id": "mersekelt-fagy",
+    "name": "❄️ Mérsékelt fagy várható",
+    "type": "alert",
+    "conditions": { "temp_below": 0 },
+    "seasons": [{ "start": "11-01", "end": "03-31" }],
+    "plants": [
+      "Közönséges füge (Ficus carica)",
+      "Babérmeggy (Prunus laurocerasus)",
+      "Örökzöld díszcserjék"
+    ],
+    "message": "A hőmérséklet -5°C alá süllyed. Érdemes ellenőrizni a fiatal növények takarását és az örökzöldek vízellátottságát!"
+  },
   {
     "id": "eros-fagy-riado",
     "name": "❄️ Erős fagyok várhatók",
@@ -31,7 +31,10 @@
     "name": "✂️ Metszési időszak",
     "type": "window",
     "seasons": [{ "start": "02-01", "end": "03-31" }],
-    "conditions": { "temp_above": 2, "rain_max": 0 },
+    "conditions": { 
+      "temp_above_sustained": 2, 
+      "rain_max": 0 
+    },
     "message": "Fagymentes, száraz idő: ideális a fás szárú növények, gyümölcsfák és a szőlő metszéséhez."
   },
   {
@@ -40,7 +43,7 @@
     "type": "window",
     "seasons": [{ "start": "03-20", "end": "05-15" }],
     "conditions": { 
-      "soil_temp_above": 10, 
+      "soil_temp_stable": 10, 
       "rain_max": 0, 
       "wind_max": 15 
     },
@@ -91,5 +94,3 @@
     "message": "A tartós meleg kedvez a díszbogarak rajzásának. Ebben az időszakban javasolt az érintett növények megfigyelése."
   }
 ]
-
-
