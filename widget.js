@@ -12,7 +12,11 @@
             const test = '__storage_test__';
             localStorage.setItem(test, test);
             localStorage.removeItem(test);
-            return { getItem: (k) => localStorage.getItem(k), setItem: (k, v) => localStorage.setItem(k, v), removeItem: (k) => localStorage.removeItem(k) };
+            return { 
+                getItem: (k) => localStorage.getItem(k), 
+                setItem: (k, v) => localStorage.setItem(k, v), 
+                removeItem: (k) => localStorage.removeItem(k) 
+            };
         } catch(e) {
             const store = {};
             return { getItem: (k) => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: (k) => { delete store[k]; } };
@@ -20,6 +24,7 @@
     }
     const storage = safeLocalStorage();
 
+    // --- SEGÉDFÜGGVÉNYEK ---
     function isInSeason(date, startStr, endStr) {
         const [sM, sD] = startStr.split('-').map(Number);
         const [eM, eD] = endStr.split('-').map(Number);
@@ -39,12 +44,10 @@
         for (let i = 0; i < days; i++) {
             let val = weather.daily[key][index - i];
             let currentSatisfied = false;
-            
             if (operator.includes('above') && val >= threshold) currentSatisfied = true;
             if (operator.includes('below') && val <= threshold) currentSatisfied = true;
             if (operator.includes('max') && val <= threshold) currentSatisfied = true;
             if (operator.includes('min') && val >= threshold) currentSatisfied = true;
-
             if (!currentSatisfied && !operator.includes('-any')) return false;
             if (currentSatisfied) anySatisfied = true;
         }
@@ -54,34 +57,31 @@
     function checkDay(rule, weather, date, i) {
         const seasons = rule.seasons || (rule.season ? [rule.season] : null);
         if (seasons && !seasons.some(s => isInSeason(date, s.start, s.end))) return false;
-
         const c = rule.conditions || {};
         const days = c.days_min || 1;
-
         if (c.temp_above !== undefined && !checkSustained(weather, i, 'temperature_2m_max', c.temp_above, 'above', days)) return false;
         if (c.temp_below !== undefined && !checkSustained(weather, i, 'temperature_2m_max', c.temp_below, 'below', days)) return false;
-        
         if (c.wind_min_any !== undefined) {
             if (!checkSustained(weather, i, 'wind_gusts_10m_max', c.wind_min_any, 'min-any', days)) return false;
         } else if (c.wind_min !== undefined) {
             if (!checkSustained(weather, i, 'wind_gusts_10m_max', c.wind_min, 'min', days)) return false;
         }
-        
         if (c.wind_max !== undefined && !checkSustained(weather, i, 'wind_gusts_10m_max', c.wind_max, 'max', days)) return false;
         if (c.rain_min !== undefined && weather.daily.precipitation_sum[i] < c.rain_min) return false;
         if (c.rain_max !== undefined && !checkSustained(weather, i, 'precipitation_sum', c.rain_max, 'max', days)) return false;
-
         return true;
     }
 
     window.activateLocalWeather = () => navigator.geolocation.getCurrentPosition(p => {
         storage.setItem('garden-lat', p.coords.latitude);
         storage.setItem('garden-lon', p.coords.longitude);
+        storage.removeItem('garden-weather-cache'); // Új helyszínnél ürítjük a cache-t
         location.reload();
     });
 
     window.resetLocation = () => { 
         storage.removeItem('garden-lat'); storage.removeItem('garden-lon');
+        storage.removeItem('garden-weather-cache');
         window.location.href = window.location.origin + window.location.pathname;
     };
 
@@ -91,11 +91,32 @@
         if (urlParams.has('lat')) { lat = urlParams.get('lat'); lon = urlParams.get('lon'); isPersonalized = true; }
         else { const sLat = storage.getItem('garden-lat'), sLon = storage.getItem('garden-lon'); if (sLat) { lat = sLat; lon = sLon; isPersonalized = true; } }
 
-        const [rRes, wRes] = await Promise.all([
-            fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json'),
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${Number(lat).toFixed(4)}&longitude=${Number(lon).toFixed(4)}&daily=temperature_2m_max,wind_gusts_10m_max,precipitation_sum&past_days=7&timezone=auto`)
-        ]);
-        const rules = await rRes.json(), weather = await wRes.json();
+        // --- CACHE LOGIKA (30 PERC) ---
+        const cacheKey = 'garden-weather-cache';
+        const cachedData = storage.getItem(cacheKey);
+        let weather, lastUpdate;
+
+        if (cachedData) {
+            const parsed = JSON.parse(cachedData);
+            const now = new Date().getTime();
+            // Ha 30 percnél (1800000 ms) frissebb az adat, és ugyanaz a koordináta
+            if (now - parsed.timestamp < 1800000 && parsed.lat == lat && parsed.lon == lon) {
+                weather = parsed.data;
+                lastUpdate = new Date(parsed.timestamp);
+            }
+        }
+
+        const rRes = await fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json');
+        const rules = await rRes.json();
+
+        if (!weather) {
+            const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${Number(lat).toFixed(4)}&longitude=${Number(lon).toFixed(4)}&daily=temperature_2m_max,wind_gusts_10m_max,precipitation_sum&past_days=7&timezone=auto`);
+            weather = await wRes.json();
+            const timestamp = new Date().getTime();
+            storage.setItem(cacheKey, JSON.stringify({ timestamp, data: weather, lat, lon }));
+            lastUpdate = new Date(timestamp);
+        }
+
         const widgetDiv = document.getElementById('smart-garden-widget');
         if (!widgetDiv) return;
 
@@ -120,6 +141,8 @@
         const alertFallback = [{ dStr: "RIASZTÁSOK", title: "☕ Most minden nyugi", msg: "A Kertfigyelő nem lát veszélyt a láthatáron. Főzz egy kávét!", color: "#2563eb" }];
         const infoFallback = [{ dStr: "TEENDŐK", title: "🌿 Pihenj!", msg: "Nincs sürgős kerti munka, élvezd a Mezítlábas Kertedet.", color: "#16a34a" }];
 
+        const timeStr = lastUpdate.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
+
         widgetDiv.innerHTML = `
             <div style="position: fixed; left: 0px; top: 220px; width: 300px; z-index: 9999; font-family: 'Plus Jakarta Sans', sans-serif; display: none;" id="garden-floating-sidebar">
                 <div style="background: #ffffff; padding: 25px; box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.5); border-radius: 0px;">
@@ -134,8 +157,8 @@
                     <div id="alert-zone" style="height: 135px; overflow: hidden;"></div>
                     <div style="height: 25px;"></div>
                     <div id="info-zone" style="height: 135px; overflow: hidden;"></div>
-                    <div style="font-size: 8px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 2px; margin-top: 15px; text-align: center;">
-                        v3.1.5 • Smooth Flow Engine
+                    <div style="font-size: 8px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; margin-top: 15px; text-align: center; line-height: 1.6;">
+                        v3.2.0 • Frissítve: ${timeStr}<br>Smart Cache Engine
                     </div>
                 </div>
             </div>`;
@@ -147,11 +170,8 @@
             let idx = 0;
             const update = () => {
                 const item = items[idx];
-                
-                // Animáció kezdete: elhalványul és kicsit lejjebb úszik
                 container.style.opacity = 0;
                 container.style.transform = "translateY(8px)";
-                
                 setTimeout(() => {
                     container.innerHTML = `
                         <div style="border-left: 4px solid ${item.color}; padding-left: 15px; height: 100%; display: flex; flex-direction: column; justify-content: flex-start;">
@@ -159,24 +179,16 @@
                             <div style="font-size: 17px; font-weight: 800; color: #1e293b; line-height: 1.2; margin-bottom: 8px;">${esc(item.title)}</div>
                             <p style="margin:0; font-size: 13px; line-height: 1.4; color: #475569;">${esc(item.msg)}</p>
                         </div>`;
-                    
-                    // Visszaúszik a helyére és megjelenik
                     container.style.opacity = 1;
                     container.style.transform = "translateY(0px)";
-                    
                     idx = (idx + 1) % items.length;
                 }, 500);
             };
-            
-            // Beállítjuk a transition-t az egész containerre
             container.style.transition = "opacity 0.6s ease-in-out, transform 0.6s ease-out";
-            
             update();
             if (items.length > 1) setInterval(update, 6000);
         };
-
         startCarousel('alert-zone', finalAlerts.length ? finalAlerts : alertFallback);
         startCarousel('info-zone', finalInfos.length ? finalInfos : infoFallback);
-
     } catch (e) { console.error("Kertfigyelő hiba:", e); }
 })();
