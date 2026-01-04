@@ -164,7 +164,7 @@
                         <button onclick="${isPersonalized ? 'resetLocation()' : 'activateLocalWeather()'}" 
                                 class="${isPersonalized ? '' : 'garden-btn-animate'}"
                                 style="border: 1px solid #346080; padding: 12px 14px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                            ${isPersonalized ? 'VISSZA AZ ALAPHOZ' : 'SAJÁT KERTFIGYELŐT SZERETNÉk'}
+                            ${isPersonalized ? 'VISSZA AZ ALAPHOZ' : 'SAJÁT KERTFIGYELŐT SZERETNÉK!'}
                         </button>
                     </div>
                     <div id="alert-zone" style="height: 135px; overflow: hidden;"></div>
@@ -205,4 +205,5 @@
         startCarousel('info-zone', finalInfos.length ? finalInfos : infoFallback);
     } catch (e) { console.error("Kertfigyelő hiba:", e); }
 })();
+
 
