@@ -1,5 +1,15 @@
 [
   {
+  "name": "🔎 Vihar utáni szemle",
+  "message": "Nagy szél vagy eső volt. Nézz rá a támrendszerekre, kötözésekre és a vízelvezetésre, ha elült a vihar.",
+  "type": "info",
+  "conditions": {
+    "rain_min": 10,
+    "wind_min_any": 40,
+    "days_min": 1
+  }
+},
+  {
     "id": "extrem-hoseg",
     "name": "🔥 Extrém Hőség",
     "type": "alert",
@@ -123,4 +133,5 @@
     "message": "A díszbogarak rajzásának kezdete mostanában várható. Figyeld a borókákat, tujákat és Leyland-ciprusokat!"
   }
 ]
+
 
