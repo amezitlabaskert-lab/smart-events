@@ -1,7 +1,6 @@
 (async function() {
     const esc = str => String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
     
-    // Betűtípusok
     if (!document.querySelector('link[href*="Plus+Jakarta+Sans"]')) {
         const fontLink = document.createElement('link');
         fontLink.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap';
@@ -11,45 +10,27 @@
 
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
-        #smart-garden-widget { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            color: #334155; 
-            z-index: 9999;
-        }
-        /* Asztali nézet: lebegő oldalsáv bal oldalt */
+        #smart-garden-widget { font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; z-index: 9999; }
         @media (min-width: 1250px) {
-            #smart-garden-widget {
-                position: fixed;
-                left: 20px;
-                top: 150px;
-                width: 300px;
-            }
+            #smart-garden-widget { position: fixed; left: 25px; top: 120px; width: 300px; }
         }
-        /* Mobil/Szűk nézet: marad a folyamban */
         @media (max-width: 1249px) {
-            #smart-garden-widget {
-                width: 90%;
-                max-width: 320px;
-                margin: 20px auto;
-            }
+            #smart-garden-widget { width: 90%; max-width: 320px; margin: 20px auto; }
         }
         .garden-main-card { 
-            background: #ffffff; 
-            padding: 30px; 
-            border: 1px solid #f1f5f9; 
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); 
-            border-radius: 12px; 
+            background: #ffffff; padding: 25px; border: 1px solid #f1f5f9; 
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); border-radius: 12px; 
         }
         .garden-title { font-family: 'Dancing Script', cursive; font-size: 42px; text-align: center; margin-bottom: 20px; color: #1e293b; line-height: 1; }
         .section-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 12px; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
         .alert-header { color: #b91c1c; }
         .info-header { color: #6691b3; margin-top: 25px; }
-        .card-container { position: relative; padding-left: 20px; margin-bottom: 15px; min-height: 90px; }
+        .card-container { position: relative; padding-left: 18px; margin-bottom: 15px; min-height: 85px; }
         .card-line { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 2px; }
         .event-name { font-size: 17px; font-weight: 800; margin-bottom: 2px; color: #1e293b; }
         .event-range { font-size: 10px; font-weight: 700; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; }
         .event-msg { font-size: 12.5px; line-height: 1.5; color: #475569; }
-        .garden-footer { text-align: center; font-size: 9px; color: #cbd5e1; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9; }
+        .garden-footer { text-align: center; font-size: 9px; color: #94a3b8; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9; line-height: 1.5; }
         .loc-btn { border: 1px solid #346080; background: none; padding: 8px; font-size: 9px; font-weight: 800; cursor: pointer; width: 100%; margin-bottom: 15px; color: #346080; border-radius: 4px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade { animation: fadeIn 0.5s ease-out forwards; }
@@ -201,8 +182,9 @@
                     <div class="section-title info-header">Teendők</div>
                     ${renderZone(infos, { range: 'MA', title: 'Pihenj!', msg: 'Élvezd a Mezítlábas Kertedet.', color: '#6691b3' }, 'info')}
                     <div class="garden-footer">
-                        v3.4.3 • Frissítve: ${lastUpdate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})}<br>
-                        Winter Skin Edition
+                        Frissítve: ${lastUpdate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})}<br>
+                        Winter Skin Edition<br>
+                        v3.4.4
                     </div>
                 </div>`;
 
