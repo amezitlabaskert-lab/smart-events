@@ -1,135 +1,159 @@
 (async function() {
-    // 1. Font betöltése
+    const esc = str => String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
+    
     const fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap';
     fontLink.rel = 'stylesheet';
     document.head.appendChild(fontLink);
 
-    // 2. Modern CSS stílusok
-    const style = document.createElement('style');
-    style.textContent = `
-        #smart-garden-widget {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+    function isInSeason(date, startStr, endStr) {
+        const [sM, sD] = startStr.split('-').map(Number);
+        const [eM, eD] = endStr.split('-').map(Number);
+        const year = date.getFullYear();
+        let start = new Date(year, sM - 1, sD);
+        let end = new Date(year, eM - 1, eD);
+        if (end < start) { 
+            if (date >= start) return true;
+            let prevYearStart = new Date(year - 1, sM - 1, sD);
+            let prevYearEnd = new Date(year, eM - 1, eD);
+            return date >= prevYearStart && date <= prevYearEnd;
         }
-        .garden-card {
-            padding: 20px;
-            border-radius: 16px;
-            color: #ffffff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+        return date >= start && date <= end;
+    }
+
+    function checkDay(rule, weather, date, i, FORECAST_DAYS) {
+        if (!weather.daily || weather.daily.temperature_2m_min[i] === undefined) return false;
+        
+        const dayMin = weather.daily.temperature_2m_min[i];
+        const dayWind = weather.daily.wind_speed_10m_max[i] || 0;
+        const dayRain = weather.daily.precipitation_sum[i] || 0;
+        const daySoil = weather.daily.soil_temperature_0_to_7cm ? weather.daily.soil_temperature_0_to_7cm[i] : null;
+
+        const seasons = rule.seasons || (rule.season ? [rule.season] : null);
+        if (seasons && !seasons.some(s => isInSeason(date, s.start, s.end))) return false;
+
+        const cond = rule.conditions || rule.trigger || {};
+
+        if (cond.temp_below !== undefined && dayMin > cond.temp_below) return false;
+        if (cond.temp_above !== undefined && dayMin < cond.temp_above) return false;
+
+        if (cond.temp_above_sustained !== undefined) {
+            if (i > FORECAST_DAYS - 3) return false; 
+            const futureTemps = weather.daily.temperature_2m_min.slice(i, i + 3);
+            if (futureTemps.length < 3 || !futureTemps.every(t => t >= cond.temp_above_sustained)) return false;
         }
-        .garden-card:hover { transform: translateY(-2px); }
-        .garden-card.alert { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); border-left: 8px solid #60a5fa; }
-        .garden-card.info { background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%); border-left: 8px solid #7dd3fc; }
-        .garden-card.window { background: linear-gradient(135deg, #15803d 0%, #22c55e 100%); border-left: 8px solid #86efac; }
-        .garden-card strong { display: block; font-size: 1.1em; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .garden-card p { margin: 0 0 12px 0; font-size: 1em; line-height: 1.5; opacity: 0.95; }
-        .plant-list { 
-            font-size: 0.85em; 
-            background: rgba(255,255,255,0.15); 
-            padding: 8px 12px; 
-            border-radius: 8px;
-            font-weight: 600;
+
+        if (cond.soil_temp_stable !== undefined) {
+            if (i > FORECAST_DAYS - 2) return false;
+            const nextDaySoil = weather.daily.soil_temperature_0_to_7cm[i + 1];
+            if (daySoil < cond.soil_temp_stable || nextDaySoil < cond.soil_temp_stable) return false;
         }
-    `;
-    document.head.appendChild(style);
+
+        if (cond.rain_max !== undefined && dayRain > cond.rain_max) return false;
+        if (cond.rain_min !== undefined && dayRain < cond.rain_min) return false;
+        if (cond.wind_max !== undefined && dayWind > cond.wind_max) return false;
+
+        return true;
+    }
+
+    window.activateLocalWeather = () => navigator.geolocation.getCurrentPosition(p => {
+        localStorage.setItem('garden-lat', p.coords.latitude);
+        localStorage.setItem('garden-lon', p.coords.longitude);
+        location.reload();
+    });
+
+    window.resetLocation = () => { 
+        localStorage.removeItem('garden-lat');
+        localStorage.removeItem('garden-lon');
+        location.reload(); 
+    };
 
     try {
-        const rulesRes = await fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json');
-        const rules = await rulesRes.json();
-        
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=47.5136&longitude=19.3735&daily=temperature_2m_min,wind_speed_10m_max,precipitation_sum,soil_temperature_0_to_7cm&timezone=auto`);
-        const weather = await weatherRes.json();
+        const lat = localStorage.getItem('garden-lat') || 47.5136;
+        const lon = localStorage.getItem('garden-lon') || 19.3735;
+        const isPersonalized = !!localStorage.getItem('garden-lat');
 
+        const [rulesRes, weatherRes] = await Promise.all([
+            fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json'),
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_min,wind_speed_10m_max,precipitation_sum,soil_temperature_0_to_7cm&timezone=auto`)
+        ]);
+
+        const rules = await rulesRes.json();
+        const weather = await weatherRes.json();
         const widgetDiv = document.getElementById('smart-garden-widget');
-        let htmlContent = '';
+        const FORECAST_DAYS = weather.daily.temperature_2m_min.length;
+
+        let htmlHeader = `
+            <div style="background: #f8fafc; padding: 18px; border-radius: 14px; border: 1px solid #e2e8f0; position: relative; font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 15px;">
+                <div style="position: absolute; top: 0; right: 0; background: #fef3c7; color: #92400e; font-size: 0.65rem; font-weight: 800; padding: 4px 12px; border-bottom-left-radius: 10px; text-transform: uppercase;">Tesztüzem v1.7</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1;">
+                        <span style="font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                            ${isPersonalized ? '<span style="color: #22c55e;">✅</span> SAJÁT KERT' : '<span style="filter: grayscale(1);">📍</span> ÁLTALÁNOS HELYSZÍN'}
+                        </span>
+                        <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">${isPersonalized ? 'A te környezeted adatai alapján.' : 'Bázis-adatok alapján.'}</p>
+                    </div>
+                    <button onclick="${isPersonalized ? 'resetLocation()' : 'activateLocalWeather()'}" style="padding: 10px 16px; border-radius: 10px; cursor: pointer; border: none; font-weight: 700; background: ${isPersonalized ? '#e2e8f0' : '#15803d'}; color: ${isPersonalized ? '#475569' : 'white'}; transition: 0.2s;">
+                        ${isPersonalized ? 'Vissza az alaphoz' : 'Saját kertre szabom'}
+                    </button>
+                </div>
+            </div>`;
+
+        let htmlCards = '';
+        let hasActiveCards = false;
+        const today = new Date();
+        today.setHours(12, 0, 0, 0); 
 
         rules.forEach(rule => {
-            let activeWindows = [];
-            let currentWindow = null;
+            const typeClass = ['alert','info','window'].includes(rule.type) ? rule.type : 'info';
+            let windows = [];
 
-            for (let i = 0; i < 7; i++) {
-                const date = new Date();
-                date.setDate(date.getDate() + i);
-                
-                const dayMin = weather.daily.temperature_2m_min[i];
-                const dayWind = weather.daily.wind_speed_10m_max[i];
-                const dayRain = weather.daily.precipitation_sum[i];
-                const daySoil = weather.daily.soil_temperature_0_to_7cm[i];
-                
-                let isDayOk = false;
-                const cond = rule.conditions || {};
-
-                // JAVÍTOTT SZEZON ELLENŐRZÉS (Évforduló kezeléssel és alapértelmezett aktivitással)
-                let isS = true; 
-                if (rule.seasons && rule.seasons.length > 0) {
-                    isS = rule.seasons.some(s => {
-                        const [sM, sD] = s.start.split('-').map(Number);
-                        const [eM, eD] = s.end.split('-').map(Number);
-                        let start = new Date(date.getFullYear(), sM - 1, sD);
-                        let end = new Date(date.getFullYear(), eM - 1, eD);
-                        
-                        // Ha a vége dátum korábbi, mint a kezdő, akkor átnyúlik a következő évre
-                        if (end < start) {
-                            if (date < start) start.setFullYear(start.getFullYear() - 1);
-                            else end.setFullYear(end.getFullYear() + 1);
-                        }
-                        return date >= start && date <= end;
-                    });
-                }
-
-                if (isS) {
-                    isDayOk = true;
-
-                    // TALAJHŐ STABILITÁS
-                    if (cond.soil_temp_above !== undefined) {
-                        const nextDaySoil = weather.daily.soil_temperature_0_to_7cm[i + 1] || daySoil;
-                        if (daySoil < cond.soil_temp_above || nextDaySoil < cond.soil_temp_above) isDayOk = false;
+            // --- HELYREÁLLÍTOTT ALERT VS WINDOW LOGIKA ---
+            if (typeClass === 'alert') {
+                let first = null, last = null;
+                for (let i = 0; i < FORECAST_DAYS; i++) {
+                    const d = new Date(today); d.setDate(today.getDate() + i);
+                    if (checkDay(rule, weather, d, i, FORECAST_DAYS)) {
+                        if (!first) first = new Date(d);
+                        last = new Date(d);
                     }
-
-                    // METSZÉS BIZTONSÁG (3 NAP)
-                    if (cond.temp_above !== undefined) {
-                        const futureTemps = weather.daily.temperature_2m_min.slice(i, i + 3);
-                        if (!futureTemps.every(t => t >= cond.temp_above)) isDayOk = false;
-                    }
-
-                    if (cond.temp_below !== undefined && dayMin > cond.temp_below) isDayOk = false;
-                    if (cond.rain_max !== undefined && dayRain > cond.rain_max) isDayOk = false;
-                    if (cond.wind_max !== undefined && dayWind > cond.wind_max) isDayOk = false;
                 }
-
-                if (isDayOk) {
-                    if (!currentWindow) currentWindow = { start: new Date(date), end: new Date(date) };
-                    else currentWindow.end = new Date(date);
-                } else if (currentWindow) {
-                    activeWindows.push(currentWindow);
-                    currentWindow = null;
+                if (first) windows.push({ s: first, e: last });
+            } else {
+                let current = null;
+                for (let i = 0; i < FORECAST_DAYS; i++) {
+                    const d = new Date(today); d.setDate(today.getDate() + i);
+                    if (checkDay(rule, weather, d, i, FORECAST_DAYS)) {
+                        if (!current) current = { s: new Date(d), e: new Date(d) };
+                        else current.e = new Date(d);
+                    } else if (current) { windows.push(current); current = null; }
                 }
+                if (current) windows.push(current);
             }
-            if (currentWindow) activeWindows.push(currentWindow);
 
-            activeWindows.forEach(win => {
-                const dateStr = win.start.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}) + 
-                                (win.start.getTime() !== win.end.getTime() ? ' - ' + win.end.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}) : '');
+            if (typeClass === 'window' && windows.length > 1) {
+                htmlCards += `
+                    <div style="margin-bottom:10px; padding:12px 16px; background:#f0fdf4; border-radius:12px; border-left:4px solid #22c55e; color:#15803d; font-size:0.9rem; font-weight:600; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        📅 ${windows.length} alkalmas időszak: ${esc(rule.name)}
+                    </div>`;
+            }
+
+            windows.forEach(w => {
+                hasActiveCards = true;
+                const dStr = w.s.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}) + (w.s.getTime() !== w.e.getTime() ? ' - ' + w.e.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}) : '');
+                const bg = typeClass === 'alert' ? 'linear-gradient(135deg, #1e3a8a, #3b82f6)' : typeClass === 'window' ? 'linear-gradient(135deg, #15803d, #22c55e)' : 'linear-gradient(135deg, #0369a1, #0ea5e9)';
                 
-                htmlContent += `
-                    <div class="garden-card ${rule.type}">
-                        <strong>${dateStr}: ${rule.name}</strong>
-                        <p>${rule.message}</p>
-                        ${rule.plants ? `<div class="plant-list">Érintett: ${rule.plants.join(', ')}</div>` : ''}
-                    </div>
-                `;
+                htmlCards += `
+                    <div class="garden-card ${typeClass}" style="margin-bottom:15px; padding:20px; border-radius:16px; color:white; border-left: 8px solid rgba(255,255,255,0.3); background: ${bg}; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <strong style="display:block; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">${esc(dStr)}: ${esc(rule.name)}</strong>
+                        <p style="margin:0 0 12px 0; opacity:0.95; line-height:1.5;">${esc(rule.message)}</p>
+                        ${rule.plants?.length ? `<div style="font-size:0.85em; background:rgba(255,255,255,0.15); padding:8px 12px; border-radius:8px; font-weight:600;">Érintett: ${esc(rule.plants.join(', '))}</div>` : ''}
+                    </div>`;
             });
         });
 
-        widgetDiv.innerHTML = htmlContent || '<p style="text-align:center; opacity:0.6; padding:20px;">Jelenleg nincs aktuális kerti teendő.</p>';
-        
-    } catch (e) {
-        console.error("Widget hiba:", e);
-    }
+        const fallbackContent = `<p style="text-align:center; padding:30px; color:#94a3b8; font-size: 0.9rem; font-style: italic;">Jelenleg nincs aktív kerti teendő.</p>`;
+        widgetDiv.innerHTML = htmlHeader + (hasActiveCards ? htmlCards : fallbackContent);
+
+    } catch (e) { console.error("Widget hiba:", e); }
 })();
