@@ -1,68 +1,50 @@
 (async function() {
     const esc = str => String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
     
-    // --- SKIN BEÁLLÍTÁSOK ---
-    const skinColor = "#6691b3"; // Ez a Winter Skin alap kékje
-    // ------------------------
-
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
-        #smart-garden-widget { width: 300px; text-align: left; font-family: 'Plus Jakarta Sans', sans-serif !important; color: #000000; }
-        .garden-main-card { background: #ffffff !important; padding: 25px; border: none !important; box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.5) !important; margin-bottom: 40px !important; }
+        #smart-garden-widget { width: 300px; text-align: left; }
+        /* A kártya alapvető megjelenése - színtelen, de a háttér fehér */
+        .garden-main-card { background: #ffffff !important; padding: 25px; margin-bottom: 40px !important; box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.5) !important; }
         
-        .garden-title { font-family: 'Dancing Script', cursive !important; font-size: 3.6em !important; text-align: center !important; color: ${skinColor} !important; margin: 15px 0 !important; line-height: 1.2; }
+        .garden-title { font-family: 'Dancing Script', cursive !important; font-size: 3.6em !important; text-align: center !important; margin: 15px 0 !important; line-height: 1.2; }
         
-        /* WINTER SKIN: Egységes fejlécek */
         .section-title { 
-            font-weight: 800 !important; 
-            font-size: 16px !important; 
-            text-transform: uppercase; 
-            letter-spacing: 1.5px; 
-            border-bottom: 1px solid #eeeeee; 
-            margin-bottom: 12px; 
-            padding-bottom: 5px; 
-            color: ${skinColor} !important; /* Mostantól minden szekció címe skin színű */
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            font-weight: 800 !important; font-size: 16px !important; 
+            text-transform: uppercase; letter-spacing: 1.5px; 
+            margin-bottom: 12px; padding-bottom: 5px; 
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
-        .section-spacer { margin-top: 25px !important; }
         
-        .event-name { font-weight: 800 !important; font-size: 16px !important; margin-bottom: 2px; color: #000000; }
-        
-        .carousel-wrapper { position: relative; min-height: 110px; margin-bottom: 10px; }
+        .carousel-wrapper { position: relative; min-height: 110px; margin-bottom: 10px; overflow: hidden; }
         .carousel-item { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            opacity: 0; 
-            visibility: hidden; 
+            position: absolute; top: 0; left: 0; width: 100%; opacity: 0; visibility: hidden; 
             transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out; 
             transform: translateY(10px); 
         }
-        .carousel-item.active { 
-            opacity: 1; 
-            visibility: visible; 
-            transform: translateY(0); 
-        }
+        .carousel-item.active { opacity: 1; visibility: visible; transform: translateY(0); }
 
         .card-container { position: relative; padding-left: 18px; min-height: 95px; }
         .card-line { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
-        .event-range { font-size: 9px; font-weight: 700; opacity: 0.7; margin-bottom: 6px; text-transform: uppercase; color: #000000; }
-        .event-msg { font-size: 12px; line-height: 1.5; color: #000000; }
         
-        .garden-footer { text-align: center; font-size: 9px; opacity: 0.5; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eeeeee; line-height: 1.6; color: #000000; }
-        .loc-btn { width: 100%; cursor: pointer; padding: 10px; font-size: 10px; background: none; border: 1px solid #000000; color: #000000; margin-bottom: 20px; }
+        /* FIX FUNKCIONÁLIS SZÍNEK - Ezek minden skinben azonosak */
+        .card-type-alert { background: #b91c1c !important; }   /* Piros */
+        .card-type-window { background: #2d6a4f !important; }  /* Zöld */
+        .card-type-info { background: #6691b3 !important; }    /* Kék (Teendő) */
+        .card-type-none { background: #94a3b8 !important; }    /* Szürke (Nyugi) */
+        
+        .event-name { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; margin-bottom: 2px; }
+        .event-range { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 9px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
+        .event-msg { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 12px; line-height: 1.5; }
+        
+        .garden-footer { text-align: center; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 9px; margin-top: 20px; padding-top: 10px; line-height: 1.6; border-top: 1px solid rgba(0,0,0,0.05); }
+        .loc-btn { width: 100%; cursor: pointer; padding: 10px; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px; background: none; border: 1px solid currentColor; margin-bottom: 20px; }
     `;
     document.head.appendChild(styleSheet);
 
-    function createSafeStorage() {
-        const memoryStore = {};
-        try {
-            const t = 't'; localStorage.setItem(t, t); localStorage.removeItem(t);
-            return { getItem: (k) => localStorage.getItem(k), setItem: (k, v) => localStorage.setItem(k, v), removeItem: (k) => localStorage.removeItem(k) };
-        } catch(e) {
-            return { getItem: (k) => memoryStore[k] || null, setItem: (k, v) => { memoryStore[k] = v; }, removeItem: (k) => { delete memoryStore[k]; } };
-        }
-    }
+    // ... (A tárolási és időjárás logika változatlan marad) ...
+    function createSafeStorage() { const m={}; try { const t='t'; localStorage.setItem(t,t); localStorage.removeItem(t); return { getItem: (k)=>localStorage.getItem(k), setItem: (k,v)=>localStorage.setItem(k,v), removeItem: (k)=>localStorage.removeItem(k) }; } catch(e) { return { getItem: (k)=>m[k]||null, setItem: (k,v)=>{m[k]=v;}, removeItem: (k)=>{delete m[k];} }; } }
     const storage = createSafeStorage();
 
     function isInSeason(date, startStr, endStr) {
@@ -117,16 +99,13 @@
     async function init() {
         const widgetDiv = document.getElementById('smart-garden-widget');
         if (!widgetDiv) return;
-
         try {
-            let lat = 47.5136, lon = 19.3735, isPersonalized = false;
+            let lat = 47.5136, lon = 19.3735, isPers = false;
             const sLat = storage.getItem('garden-lat'), sLon = storage.getItem('garden-lon');
-            if (sLat && sLon) { lat = Number(sLat); lon = Number(sLon); isPersonalized = true; }
-
+            if (sLat && sLon) { lat = Number(sLat); lon = Number(sLon); isPers = true; }
             const cacheKey = 'garden-weather-cache';
             const cachedData = storage.getItem(cacheKey);
             let weather, lastUpdate;
-
             if (cachedData) {
                 try {
                     const parsed = JSON.parse(cachedData);
@@ -135,10 +114,8 @@
                     }
                 } catch(e) { storage.removeItem(cacheKey); }
             }
-
             const rRes = await fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json');
             const rules = await rRes.json();
-
             if (!weather) {
                 const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,precipitation_sum&past_days=7&timezone=auto`);
                 weather = await wRes.json();
@@ -146,42 +123,25 @@
                 storage.setItem(cacheKey, JSON.stringify({ timestamp, data: weather, lat, lon }));
                 lastUpdate = new Date(timestamp);
             }
-
             const results = [];
             const todayNoon = new Date().setHours(12, 0, 0, 0);
-
             rules.forEach(rule => {
-                let activeRange = null;
+                let range = null;
                 for (let i = 0; i < weather.daily.time.length; i++) {
                     const d = new Date(weather.daily.time[i]);
                     if (checkDay(rule, weather, d, i)) {
-                        if (!activeRange) activeRange = { start: d, end: d };
-                        else activeRange.end = d;
-                    } else if (activeRange) break;
+                        if (!range) range = { start: d, end: d }; else range.end = d;
+                    } else if (range) break;
                 }
-                if (activeRange) {
+                if (range) {
                     const fmt = d => {
                         const diff = Math.round((new Date(d).setHours(12,0,0,0) - todayNoon) / 86400000);
-                        if (diff === 0) return "MA";
-                        if (diff === 1) return "HOLNAP";
-                        if (diff < 0) return "ELMÚLT NAPOK";
+                        if (diff === 0) return "MA"; if (diff === 1) return "HOLNAP"; if (diff < 0) return "ELMÚLT NAPOK";
                         return d.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}).toUpperCase().replace('.', '');
                     };
-                    const sStr = fmt(activeRange.start);
-                    const eStr = fmt(activeRange.end);
-                    const rangeStr = (sStr === eStr) ? sStr : `${sStr} — ${eStr}`;
-                    
-                    let itemColor = '#6691b3';
-                    if (rule.type === 'alert') itemColor = '#b91c1c';
-                    if (rule.type === 'window') itemColor = '#2d6a4f';
-
-                    results.push({ range: rangeStr, title: rule.name, msg: rule.message, type: rule.type, color: itemColor });
+                    results.push({ range: fmt(range.start) + (fmt(range.start) !== fmt(range.end) ? ' — ' + fmt(range.end) : ''), title: rule.name, msg: rule.message, type: rule.type });
                 }
             });
-
-            const alerts = results.filter(r => r.type === 'alert');
-            const windows = results.filter(r => r.type === 'window');
-            const infos = results.filter(r => r.type !== 'alert' && r.type !== 'window');
 
             const renderZone = (items, fallback, id) => {
                 if (items.length === 0 && !fallback) return '';
@@ -190,7 +150,7 @@
                     ${displayItems.map((item, idx) => `
                         <div class="carousel-item ${idx === 0 ? 'active' : ''}">
                             <div class="card-container">
-                                <div class="card-line" style="background: ${item.color}"></div>
+                                <div class="card-line card-type-${item.type}"></div>
                                 <div class="event-name">${esc(item.title)}</div>
                                 <div class="event-range">${item.range}</div>
                                 <div class="event-msg">${esc(item.msg)}</div>
@@ -203,34 +163,20 @@
                 <div class="garden-main-card">
                     <div class="garden-title">Kertfigyelő</div>
                     <button onclick="window.gardenAction()" class="loc-btn">
-                        ${isPersonalized ? 'VISSZA AZ ALAPHOZ' : 'SAJÁT KERTFIGYELŐT SZERETNÉK!'}
+                        ${isPers ? 'VISSZA AZ ALAPHOZ' : 'SAJÁT KERTFIGYELŐT SZERETNÉK!'}
                     </button>
-                    
                     <div class="section-title">Riasztások</div>
-                    ${renderZone(alerts, { range: 'Jelenleg', title: 'Minden nyugi', msg: 'Nincs veszély a láthatáron.', color: '#94a3b8' }, 'alert')}
-                    
-                    ${windows.length ? '<div class="section-title section-spacer">Lehetőségek</div>' : ''}
-                    ${renderZone(windows, null, 'window')}
-
-                    <div class="section-title section-spacer">Teendők</div>
-                    ${renderZone(infos, { range: 'MA', title: 'Pihenj!', msg: 'Élvezd a Mezítlábas Kertedet.', color: '#94a3b8' }, 'info')}
-                    
-                    <div class="garden-footer">
-                        Last updated: ${lastUpdate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})}<br>
-                        Winter Skin Edition<br>
-                        v3.4.29
-                    </div>
+                    ${renderZone(results.filter(r => r.type === 'alert'), { range: 'Jelenleg', title: 'Minden nyugi', msg: 'Nincs veszély a láthatáron.', type: 'none' }, 'alert')}
+                    ${results.some(r => r.type === 'window') ? '<div class="section-title" style="margin-top:25px">Lehetőségek</div>' : ''}
+                    ${renderZone(results.filter(r => r.type === 'window'), null, 'window')}
+                    <div class="section-title" style="margin-top:25px">Teendők</div>
+                    ${renderZone(results.filter(r => r.type !== 'alert' && r.type !== 'window'), { range: 'MA', title: 'Pihenj!', msg: 'Élvezd a Mezítlábas Kertedet.', type: 'none' }, 'info')}
+                    <div class="garden-footer">Last updated: ${lastUpdate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})}<br>Winter Skin Edition<br>v3.5.1</div>
                 </div>`;
 
             window.gardenAction = () => {
-                if (isPersonalized) {
-                    storage.removeItem('garden-lat'); storage.removeItem('garden-lon'); storage.removeItem('garden-weather-cache'); location.reload();
-                } else {
-                    navigator.geolocation.getCurrentPosition(p => {
-                        storage.setItem('garden-lat', p.coords.latitude); storage.setItem('garden-lon', p.coords.longitude);
-                        storage.removeItem('garden-weather-cache'); location.reload();
-                    }, () => alert("Hiba a helymeghatározáskor."));
-                }
+                if (isPers) { storage.removeItem('garden-lat'); storage.removeItem('garden-lon'); storage.removeItem('garden-weather-cache'); location.reload(); }
+                else { navigator.geolocation.getCurrentPosition(p => { storage.setItem('garden-lat', p.coords.latitude); storage.setItem('garden-lon', p.coords.longitude); storage.removeItem('garden-weather-cache'); location.reload(); }, () => alert("Hiba.")); }
             };
 
             const setupCarousel = (id, count) => {
@@ -240,17 +186,12 @@
                 let idx = 0;
                 setInterval(() => {
                     const items = container.querySelectorAll('.carousel-item');
-                    if (items.length) {
-                        items[idx].classList.remove('active');
-                        idx = (idx + 1) % items.length;
-                        items[idx].classList.add('active');
-                    }
+                    if (items.length) { items[idx].classList.remove('active'); idx = (idx + 1) % items.length; items[idx].classList.add('active'); }
                 }, 6000);
             };
-            setupCarousel('alert', alerts.length || 1);
-            setupCarousel('window', windows.length);
-            setupCarousel('info', infos.length || 1);
-
+            setupCarousel('alert', Math.max(1, results.filter(r => r.type === 'alert').length));
+            setupCarousel('window', results.filter(r => r.type === 'window').length);
+            setupCarousel('info', Math.max(1, results.filter(r => r.type !== 'alert' && r.type !== 'window').length));
         } catch (e) { console.error(e); }
     }
     init();
