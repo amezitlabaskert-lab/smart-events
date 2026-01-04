@@ -10,16 +10,19 @@
 
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
-        #smart-garden-widget { font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; z-index: 9999; }
-        @media (min-width: 1250px) {
-            #smart-garden-widget { position: fixed; left: 25px; top: 120px; width: 300px; }
-        }
-        @media (max-width: 1249px) {
-            #smart-garden-widget { width: 90%; max-width: 320px; margin: 20px auto; }
+        #smart-garden-widget { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: #334155; 
+            max-width: 320px; 
+            margin: 20px auto; 
+            text-align: left;
         }
         .garden-main-card { 
-            background: #ffffff; padding: 25px; border: 1px solid #f1f5f9; 
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); border-radius: 12px; 
+            background: #ffffff; 
+            padding: 25px; 
+            border: 1px solid #f1f5f9; 
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); 
+            border-radius: 12px; 
         }
         .garden-title { font-family: 'Dancing Script', cursive; font-size: 42px; text-align: center; margin-bottom: 20px; color: #1e293b; line-height: 1; }
         .section-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 12px; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
@@ -30,8 +33,21 @@
         .event-name { font-size: 17px; font-weight: 800; margin-bottom: 2px; color: #1e293b; }
         .event-range { font-size: 10px; font-weight: 700; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; }
         .event-msg { font-size: 12.5px; line-height: 1.5; color: #475569; }
-        .garden-footer { text-align: center; font-size: 9px; color: #94a3b8; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9; line-height: 1.5; }
-        .loc-btn { border: 1px solid #346080; background: none; padding: 8px; font-size: 9px; font-weight: 800; cursor: pointer; width: 100%; margin-bottom: 15px; color: #346080; border-radius: 4px; }
+        .garden-footer { text-align: center; font-size: 9px; color: #94a3b8; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9; line-height: 1.6; }
+        .loc-btn { 
+            border: 1px solid #346080; 
+            background: #346080; 
+            color: white;
+            padding: 10px; 
+            font-size: 10px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-bottom: 20px; 
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+        .loc-btn:hover { background: #2a4d66; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade { animation: fadeIn 0.5s ease-out forwards; }
     `;
@@ -184,7 +200,7 @@
                     <div class="garden-footer">
                         Frissítve: ${lastUpdate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})}<br>
                         Winter Skin Edition<br>
-                        v3.4.4
+                        v3.4.5
                     </div>
                 </div>`;
 
