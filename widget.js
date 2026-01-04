@@ -97,7 +97,7 @@
             if (current) windows.push(current);
             
             windows.forEach(w => {
-                const label = rule.type === 'alert' ? 'RIASZTÁS' : 'TEENDŐ';
+                const label = rule.type === 'alert' ? 'RIASZTÁSOK' : 'TEENDŐK';
                 const title = rule.name.replace(/\s+várható$/i, "") + (w.count > 1 ? ` várható a következő ${w.count} napban` : "");
                 const card = { dStr: label, title, msg: rule.message, color: (rule.type === 'alert' ? '#2563eb' : '#16a34a') };
                 if (rule.type === 'alert') alerts.push(card); else infos.push(card);
@@ -105,8 +105,8 @@
         });
 
         // ÜRES ÁLLAPOTOK (FALLBACK)
-        const alertFallback = [{ dStr: "RIASZTÁS", title: "☕ Most minden nyugi", msg: "A Kertfigyelő nem lát veszélyt a láthatáron. Főzz egy kávét!", color: "#2563eb" }];
-        const infoFallback = [{ dStr: "TEENDŐ", title: "🌿 Pihenj!", msg: "Nincs sürgős kerti munka, élvezd a tájat és a mezítlábas kertet.", color: "#16a34a" }];
+        const alertFallback = [{ dStr: "RIASZTÁSOK", title: "☕ Most minden nyugi", msg: "A Kertfigyelő nem lát veszélyt a láthatáron. Főzz egy kávét!", color: "#2563eb" }];
+        const infoFallback = [{ dStr: "TEENDŐK", title: "🌿 Pihenj!", msg: "Nincs sürgős kerti munka, élvezd a tájat és a mezítlábas kertet.", color: "#16a34a" }];
 
         const finalAlerts = alerts.length > 0 ? alerts : alertFallback;
         const finalInfos = infos.length > 0 ? infos : infoFallback;
@@ -162,4 +162,5 @@
 
     } catch (e) { console.error("Kertfigyelő hiba:", e); }
 })();
+
 
