@@ -55,7 +55,7 @@
             if (isSummer) return { range: "NYÁR", title: "🧊 Kellemes klíma", msg: "Nincs hőségriadó, élvezd a kertet!", type: "none" };
             return { range: "ŐSZ", title: "☁️ Szelíd ősz", msg: "Viharmentes, nyugodt időjárás.", type: "none" };
         } else {
-            if (isWinter) return { range: "TÉL", title: "☕ Téli álom", msg: "Tea, takaró és tervezésgetés.", type: "none" };
+            if (isWinter) return { range: "TÉL", title: "☕ Téli álom", msg: "Tea, takaró és tervezgetés.", type: "none" };
             if (isSpring) return { range: "TAVASZ", title: "🌱 Ébredező kert", msg: "Figyeld az első rügyeket!", type: "none" };
             if (isSummer) return { range: "NYÁR", title: "☀️ Mezítlábas idő", msg: "Élvezd a füvet a talpad alatt!", type: "none" };
             return { range: "ŐSZ", title: "🍂 Színkavalkád", msg: "Lassulj le az őszi fényekkel.", type: "none" };
@@ -207,6 +207,7 @@
     }
     init();
 })();
+
 
 
 
