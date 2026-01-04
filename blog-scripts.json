@@ -1,16 +1,58 @@
 [
   {
+    "id": "extrem-hoseg",
+    "name": "🔥 Extrém Hőség",
+    "type": "alert",
+    "seasons": [{ "start": "06-01", "end": "08-31" }],
+    "conditions": { "temp_above": 35 },
+    "message": "Figyelem! 35°C feletti hőség várható. Ez már komoly terhelés a növényeknek is, a perzselő nap ellen védekezz mélyöntözéssel!"
+  },
+  {
+    "id": "kanikula-tartos",
+    "name": "🥵 Kánikula",
+    "type": "alert",
+    "seasons": [{ "start": "06-15", "end": "08-31" }],
+    "conditions": { 
+      "temp_above": 30, 
+      "days_min": 3,
+      "rain_max": 2
+    },
+    "message": "Legalább 3 napja 30°C felett marad a csúcs. A kevés (2mm alatti) eső nem segít, a talaj mélyebb rétegei is átforrósodtak!"
+  },
+  {
+    "id": "nyari-aszaly-pro",
+    "name": "🔥 Aszályriadó",
+    "type": "alert",
+    "seasons": [{ "start": "06-01", "end": "08-31" }],
+    "conditions": { 
+      "temp_above": 30, 
+      "rain_max": 2, 
+      "days_min": 5 
+    },
+    "message": "Már 5 napja hőség van érdemi eső nélkül. Kritikus vízhiány! Esti mélyöntözés szükséges a növényeknek a túléléshez."
+  },
+  {
+    "id": "viharos-szel-riado",
+    "name": "💨 Viharos szél",
+    "type": "alert",
+    "conditions": { "wind_min": 39 },
+    "message": "Erős széllökések (39+ km/h) várhatók. Rögzítsd a kerti bútorokat, napernyőket, és vigyázz az ágletörésekre!"
+  },
+  {
+    "id": "felhoszakadas-riado",
+    "name": "🌧️ Felhőszakadás",
+    "type": "alert",
+    "conditions": { "rain_min": 15 },
+    "message": "Intenzív esőzés (15mm+) várható rövid idő alatt. Ellenőrizd a vízelvezetőket, nehogy a hirtelen víz kimosson bármit a kertből!"
+  },
+  {
     "id": "mersekelt-fagy",
     "name": "❄️ Mérsékelt fagy",
     "type": "alert",
     "conditions": { "temp_below": 0 },
     "seasons": [{ "start": "11-01", "end": "03-31" }],
-    "plants": [
-      "Közönséges füge (Ficus carica)",
-      "Babérmeggy (Prunus laurocerasus)",
-      "Örökzöld díszcserjék"
-    ],
-    "message": "A hőmérséklet -5°C alá süllyed. Érdemes ellenőrizni a fiatal növények takarását és az örökzöldek vízellátottságát!"
+    "plants": ["Közönséges füge", "Babérmeggy", "Örökzöld díszcserjék"],
+    "message": "A hőmérséklet fagypont alá süllyed. Érdemes ellenőrizni a fiatal növények takarását és az örökzöldek állapotát!"
   },
   {
     "id": "eros-fagy-riado",
@@ -18,41 +60,37 @@
     "type": "alert",
     "conditions": { "temp_below": -10 },
     "seasons": [{ "start": "11-01", "end": "03-15" }],
-    "plants": [
-      "Datolyaszilva (Diospyros kaki)", 
-      "Közönséges füge (Ficus carica)", 
-      "Európai ciprus (Cupressus sempervirens)", 
-      "Kínai selyemmirtusz (Lagerstroemia indica)"
-    ],
-    "message": "Erős fagyok jönnek (-10), az érzékenyebb növényeknek fagyvédelem szükséges!"
+    "plants": ["Datolyaszilva", "Füge", "Ciprus", "Selyemmirtusz"],
+    "message": "Erős fagyok jönnek (-10°C), az érzékenyebb mediterrán növényeknek fagyvédelem szükséges!"
+  },
+  {
+    "id": "teli-aszaly-pro",
+    "name": "🍂 Téli aszályveszély",
+    "type": "info",
+    "seasons": [{ "start": "11-15", "end": "03-10" }],
+    "conditions": { 
+      "temp_below": 0, 
+      "wind_min": 25, 
+      "rain_max": 1,
+      "days_min": 3 
+    },
+    "message": "Tartós fagy és szárító szél: az örökzöldek szomjaznak. Ha enged a fagy, egy kis langyos öntözés életmentő lehet!"
   },
   {
     "id": "tavaszi-metszes",
     "name": "✂️ Metszési időszak",
     "type": "window",
     "seasons": [{ "start": "02-01", "end": "03-31" }],
-    "conditions": { 
-      "temp_above_sustained": 2, 
-      "rain_max": 0 
-    },
-    "message": "Fagymentes, száraz idő: ideális a fás szárú növények, gyümölcsfák és a szőlő metszéséhez."
+    "conditions": { "temp_above": 2, "rain_max": 0, "days_min": 2 },
+    "message": "Legalább két napig fagymentes, száraz idő: ideális a fás szárúak és a szőlő metszéséhez."
   },
   {
     "id": "fukarbantartas-pro",
     "name": "🌱 Profi fűkarbantartás",
     "type": "window",
     "seasons": [{ "start": "03-20", "end": "05-15" }],
-    "conditions": { 
-      "soil_temp_stable": 10, 
-      "rain_max": 0, 
-      "wind_max": 15 
-    },
-    "plants": [
-      "Réti perje (Poa pratensis)", 
-      "Angolperje (Lolium perenne)", 
-      "Nádképű csenkesz (Festuca arundinacea)"
-    ],
-    "message": "A talaj hőmérséklete 6 cm mélyen elérte a 10°C-ot. Ez a tökéletes pillanat a gyepszellőztetéshez és tápanyagpótláshoz!"
+    "conditions": { "temp_above": 15, "rain_max": 0, "wind_max": 15 },
+    "message": "A levegő melegszik, a talaj is éledezhet. Tökéletes pillanat a gyepszellőztetéshez és tápanyagpótláshoz!"
   },
   {
     "id": "lemoso-permetezes",
@@ -60,38 +98,30 @@
     "type": "window",
     "seasons": [{ "start": "02-15", "end": "03-31" }],
     "conditions": { "temp_above": 5, "wind_max": 12, "rain_max": 0 },
-    "plants": ["Haszon- és dísznövények"],
-    "message": "A lemosó permetezés segít az áttelelő kártevők és gombák ellen az egész kertben. Lehetőleg szélcsendes, felhős időt válassz a perzselés elkerülése érdekében. "
+    "message": "Segíts az áttelelő kártevők ellen! Válassz szélcsendes, fagymentes napot a lemosó permetezéshez."
   },
   {
     "id": "leveltetu-megfigyeles",
-    "name": "🪲 Levéltetvek (Aphidoidea) vs. Katicák",
+    "name": "🪲 Levéltetvek vs. Katicák",
     "type": "info",
     "seasons": [{ "start": "04-01", "end": "05-20" }],
     "conditions": { "temp_above": 12 },
-    "plants": ["Rózsa (Rosa)", "Közönséges gyümölcsfák", "Díszcserjék"],
-    "message": "A levéltetvek már ébredeznek, de a katicák még nem aktívak! Ha hűvös marad az idő, elszaporodhatnak a természetes ellenségeik nélkül. Vizsgáld a hajtásvégeket!"
+    "message": "A levéltetvek már ébredeznek, de a katicák még nem aktívak! Vizsgáld a friss hajtásvégeket a kertben!"
   },
   {
     "id": "katica-aktivalodas",
-    "name": "🐞 Katicabogarak (Coccinellidae) ébredése",
+    "name": "🐞 Katicabogarak ébredése",
     "type": "info",
     "seasons": [{ "start": "04-01", "end": "06-30" }],
     "conditions": { "temp_above": 15 },
-    "message": "Megérkezett a tartós meleg, a katicák is aktivizálódnak! Most már segítenek kordában tartani a levéltetveket."
+    "message": "Megérkezett a tartós meleg, a katicák is aktivizálódnak és segítenek a kártevők elleni harcban."
   },
   {
     "id": "boroka-diszbogar-rajzas",
-    "name": "🪲 Boróka-tarka díszbogár (Lamprodila festiva)",
+    "name": "🪲 Boróka-tarka díszbogár",
     "type": "alert",
-    "seasons": [{ "start": "06-01", "end": "07-31" }],
-    "conditions": { "temp_above": 22 },
-    "plants": [
-      "Közönséges boróka (Juniperus communis)", 
-      "Nyugati tuja (Thuja occidentalis)", 
-      "Leila-ciprus (Cupressocyparis leylandii)"
-    ],
-    "message": "A tartós meleg kedvez a díszbogarak rajzásának. Ebben az időszakban javasolt az érintett növények megfigyelése."
+    "seasons": [{ "start": "06-01", "end": "07-15" }],
+    "conditions": { "temp_above": 24, "days_min": 2 },
+    "message": "A hőség beindította a díszbogarak rajzását. Figyeld a borókákat, tujákat és Leyland-ciprusokat!"
   }
 ]
-
