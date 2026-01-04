@@ -44,36 +44,27 @@
 
     function checkDay(rule, weather, date, i, FORECAST_DAYS) {
         if (!weather.daily || weather.daily.temperature_2m_min[i] === undefined) return false;
-        
         const dayMin = weather.daily.temperature_2m_min[i];
         const dayWind = weather.daily.wind_speed_10m_max[i] || 0;
         const dayRain = weather.daily.precipitation_sum[i] || 0;
-
         const seasons = rule.seasons || (rule.season ? [rule.season] : null);
         if (seasons && !seasons.some(s => isInSeason(date, s.start, s.end))) return false;
-
         const cond = rule.conditions || rule.trigger || {};
-
         if (cond.temp_below !== undefined && dayMin > cond.temp_below) return false;
         if (cond.temp_above !== undefined && dayMin < cond.temp_above) return false;
-
         if (cond.temp_above_sustained !== undefined) {
             if (i > FORECAST_DAYS - 3) return false; 
             const futureTemps = weather.daily.temperature_2m_min.slice(i, i + 3);
             if (futureTemps.length < 3 || !futureTemps.every(t => t >= cond.temp_above_sustained)) return false;
         }
-
-        // TALAJHŐ HELYETT LEVEGŐ MINIMUMMAL SZÁMOLUNK (Biztonsági fallback)
         if (cond.soil_temp_stable !== undefined) {
             if (i > FORECAST_DAYS - 2) return false;
             const nextDayMin = weather.daily.temperature_2m_min[i + 1];
             if (dayMin < cond.soil_temp_stable || nextDayMin < cond.soil_temp_stable) return false;
         }
-
         if (cond.rain_max !== undefined && dayRain > cond.rain_max) return false;
         if (cond.rain_min !== undefined && dayRain < cond.rain_min) return false;
         if (cond.wind_max !== undefined && dayWind > cond.wind_max) return false;
-
         return true;
     }
 
@@ -111,7 +102,6 @@
             if (sLat && sLon) { lat = sLat; lon = sLon; isPersonalized = true; }
         }
 
-        // API HÍVÁS: Csak a stabil napi paraméterekkel
         const [rulesRes, weatherRes] = await Promise.all([
             fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json'),
             fetch(`https://api.open-meteo.com/v1/forecast?latitude=${Number(lat).toFixed(4)}&longitude=${Number(lon).toFixed(4)}&daily=temperature_2m_min,wind_speed_10m_max,precipitation_sum&timezone=auto`)
@@ -122,21 +112,15 @@
         const widgetDiv = document.getElementById('smart-garden-widget');
         const FORECAST_DAYS = weather.daily.temperature_2m_min.length;
 
-        let htmlHeader = `
-            <div style="background: #f8fafc; padding: 18px; border-radius: 14px; border: 1px solid #e2e8f0; position: relative; font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 15px;">
-                <div style="position: absolute; top: 0; right: 0; background: #fef3c7; color: #92400e; font-size: 0.65rem; font-weight: 800; padding: 4px 12px; border-bottom-left-radius: 10px; text-transform: uppercase;">v1.9.1</div>
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <div style="flex: 1;">
-                        <span style="font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-                            ${isPersonalized ? '<span style="color: #22c55e;">✅</span> SAJÁT KERT' : '<span style="filter: grayscale(1);">📍</span> ÁLTALÁNOS HELYSZÍN'}
-                        </span>
-                        <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">${isPersonalized ? 'A te környezeted adatai alapján.' : 'Bázis-adatok alapján.'}</p>
+        // VÉGLEGES POZÍCIONÁLÁS: BAL OLDAL, LEBEGŐ (FIXED)
+        let htmlBase = `
+            <div style="position: fixed; left: 20px; top: 180px; width: 220px; z-index: 9999; font-family: 'Plus Jakarta Sans', sans-serif; display: none;" id="garden-floating-sidebar">
+                <div style="background: white; padding: 12px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #f1f5f9;">
+                    <div style="margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.6rem; font-weight: 800; color: #1e293b; letter-spacing: 0.5px;">${isPersonalized ? 'KERTED' : 'KÖRZET'}</span>
+                        <button onclick="${isPersonalized ? 'resetLocation()' : 'activateLocalWeather()'}" style="background: #f1f5f9; border: none; padding: 3px 6px; border-radius: 4px; font-size: 0.5rem; font-weight: 800; cursor: pointer; color: #475569;">${isPersonalized ? 'ALAP' : 'SAJÁT'}</button>
                     </div>
-                    <button onclick="${isPersonalized ? 'resetLocation()' : 'activateLocalWeather()'}" style="padding: 10px 16px; border-radius: 10px; cursor: pointer; border: none; font-weight: 700; background: ${isPersonalized ? '#e2e8f0' : '#15803d'}; color: ${isPersonalized ? '#475569' : 'white'}; transition: 0.2s;">
-                        ${isPersonalized ? 'Vissza az alaphoz' : 'Saját kertre szabom'}
-                    </button>
-                </div>
-            </div>`;
+                    <div style="max-height: 350px; overflow-y: auto; padding-right: 4px;">`;
 
         let htmlCards = '';
         let hasActiveCards = false;
@@ -171,18 +155,26 @@
 
             windows.forEach(w => {
                 hasActiveCards = true;
-                const dStr = w.s.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}) + (w.s.getTime() !== w.e.getTime() ? ' - ' + w.e.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}) : '');
-                const bg = typeClass === 'alert' ? 'linear-gradient(135deg, #1e3a8a, #3b82f6)' : typeClass === 'window' ? 'linear-gradient(135deg, #15803d, #22c55e)' : 'linear-gradient(135deg, #0369a1, #0ea5e9)';
+                const dStr = w.s.toLocaleDateString('hu-HU', {month:'short', day:'numeric'});
+                const accentColor = typeClass === 'alert' ? '#3b82f6' : typeClass === 'window' ? '#22c55e' : '#0ea5e9';
+                
                 htmlCards += `
-                    <div class="garden-card ${typeClass}" style="margin-bottom:15px; padding:20px; border-radius:16px; color:white; border-left: 8px solid rgba(255,255,255,0.3); background: ${bg}; font-family: 'Plus Jakarta Sans', sans-serif;">
-                        <strong style="display:block; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">${esc(dStr)}: ${esc(rule.name)}</strong>
-                        <p style="margin:0 0 12px 0; opacity:0.95; line-height:1.5;">${esc(rule.message)}</p>
-                        ${rule.plants?.length ? `<div style="font-size:0.85em; background:rgba(255,255,255,0.15); padding:8px 12px; border-radius:8px; font-weight:600;">Érintett: ${esc(rule.plants.join(', '))}</div>` : ''}
+                    <div style="margin-bottom: 12px; padding-left: 10px; border-left: 3px solid ${accentColor};">
+                        <div style="font-size: 0.55rem; font-weight: 800; color: ${accentColor}; text-transform: uppercase; margin-bottom: 2px;">${dStr}</div>
+                        <div style="font-size: 0.75rem; font-weight: 800; color: #1e293b; line-height: 1.2; margin-bottom: 3px;">${esc(rule.name)}</div>
+                        <p style="margin:0; font-size: 0.65rem; color: #64748b; line-height: 1.3;">${esc(rule.message)}</p>
                     </div>`;
             });
         });
 
-        widgetDiv.innerHTML = htmlHeader + (hasActiveCards ? htmlCards : `<p style="text-align:center; padding:30px; color:#94a3b8; font-size: 0.9rem; font-style: italic;">Jelenleg nincs aktív kerti teendő.</p>`);
+        const emptyMsg = `<p style="text-align:center; padding:10px; color:#94a3b8; font-size: 0.6rem; font-style: italic;">Nincs teendő.</p>`;
+        
+        widgetDiv.innerHTML = htmlBase + (hasActiveCards ? htmlCards : emptyMsg) + `</div></div></div>`;
+
+        // Csak asztali nézetben jelenítjük meg (szélesség > 1100px)
+        if (window.innerWidth > 1100) {
+            document.getElementById('garden-floating-sidebar').style.display = 'block';
+        }
 
     } catch (e) { console.error("Widget hiba:", e); }
 })();
