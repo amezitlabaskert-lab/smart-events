@@ -106,7 +106,7 @@
 
         // ÜRES ÁLLAPOTOK (FALLBACK)
         const alertFallback = [{ dStr: "RIASZTÁSOK", title: "☕ Most minden nyugi", msg: "A Kertfigyelő nem lát veszélyt a láthatáron. Főzz egy kávét!", color: "#2563eb" }];
-        const infoFallback = [{ dStr: "TEENDŐK", title: "🌿 Pihenj!", msg: "Nincs sürgős kerti munka, élvezd a tájat és a mezítlábas kertet.", color: "#16a34a" }];
+        const infoFallback = [{ dStr: "TEENDŐK", title: "🌿 Pihenj!", msg: "Nincs sürgős kerti munka, élvezd a tájat és a Mezítlábas Kertedet.", color: "#16a34a" }];
 
         const finalAlerts = alerts.length > 0 ? alerts : alertFallback;
         const finalInfos = infos.length > 0 ? infos : infoFallback;
@@ -162,5 +162,6 @@
 
     } catch (e) { console.error("Kertfigyelő hiba:", e); }
 })();
+
 
 
