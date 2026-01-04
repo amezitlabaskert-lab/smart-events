@@ -17,7 +17,7 @@
       "days_min": 3,
       "rain_max": 2
     },
-    "message": "Legalább 3 napja 30°C felett marad a csúcs. A kevés (2mm alatti) eső nem segít, a talaj mélyebb rétegei is átforrósodtak!"
+    "message": "Legalább 3 napja 30°C felett marad a csúcs. A kevés eső sem segít, a talaj mélyebb rétegei is átforrósodtak!"
   },
   {
     "id": "nyari-aszaly-pro",
@@ -29,7 +29,7 @@
       "rain_max": 2, 
       "days_min": 5 
     },
-    "message": "Már 5 napja hőség van érdemi eső nélkül. Kritikus vízhiány! Esti mélyöntözés szükséges a növényeknek a túléléshez."
+    "message": "Már 5 napja hőség van érdemi eső nélkül. Kritikus vízhiány! Esti mélyöntözés javasolt."
   },
   {
     "id": "viharos-szel-riado",
@@ -43,7 +43,7 @@
     "name": "🌧️ Felhőszakadás",
     "type": "alert",
     "conditions": { "rain_min": 15 },
-    "message": "Intenzív esőzés (15mm+) várható rövid idő alatt. Ellenőrizd a vízelvezetőket, nehogy a hirtelen víz kimosson bármit a kertből!"
+    "message": "Intenzív esőzés (15mm+) várható rövid idő alatt. Ellenőrizd a vízelvezetőket!"
   },
   {
     "id": "mersekelt-fagy",
@@ -51,7 +51,6 @@
     "type": "alert",
     "conditions": { "temp_below": 0 },
     "seasons": [{ "start": "11-01", "end": "03-31" }],
-    "plants": ["Közönséges füge", "Babérmeggy", "Örökzöld díszcserjék"],
     "message": "A hőmérséklet fagypont alá süllyed. Érdemes ellenőrizni a fiatal növények takarását és az örökzöldek állapotát!"
   },
   {
@@ -60,8 +59,7 @@
     "type": "alert",
     "conditions": { "temp_below": -10 },
     "seasons": [{ "start": "11-01", "end": "03-15" }],
-    "plants": ["Datolyaszilva", "Füge", "Ciprus", "Selyemmirtusz"],
-    "message": "Erős fagyok jönnek (-10°C), az érzékenyebb mediterrán növényeknek fagyvédelem szükséges!"
+    "message": "Erős fagyok jönnek (-10°C), az érzékenyebb növényeknek fagyvédelem szükséges!"
   },
   {
     "id": "teli-aszaly-pro",
@@ -74,7 +72,7 @@
       "rain_max": 1,
       "days_min": 3 
     },
-    "message": "3 napja fagy, és volt szárító szél is. Az örökzöldek (tuja, babérmeggy) szomjaznak! Ha enged a fagy, öntözd meg őket langyos vízzel."
+    "message": "Az örökzöldek szomjazhatnak! Ha enged a fagy, öntözd meg őket."
   },
   {
     "id": "tavaszi-metszes",
@@ -82,7 +80,7 @@
     "type": "window",
     "seasons": [{ "start": "02-01", "end": "03-31" }],
     "conditions": { "temp_above": 2, "rain_max": 0, "days_min": 2 },
-    "message": "Legalább két napig fagymentes, száraz idő: ideális a fás szárúak és a szőlő metszéséhez."
+    "message": "Legalább két napig fagymentes, száraz idő: ideális a metszéshez."
   },
   {
     "id": "fukarbantartas-pro",
@@ -122,6 +120,7 @@
     "type": "alert",
     "seasons": [{ "start": "06-01", "end": "07-15" }],
     "conditions": { "temp_above": 24, "days_min": 2 },
-    "message": "A hőség beindította a díszbogarak rajzását. Figyeld a borókákat, tujákat és Leyland-ciprusokat!"
+    "message": "A díszbogarak rajzásának kezdete mostanában várható. Figyeld a borókákat, tujákat és Leyland-ciprusokat!"
   }
 ]
+
