@@ -113,7 +113,7 @@
 
         // HTML Felépítése - width: 300px, top: 220px
         widgetDiv.innerHTML = `
-            <div style="position: fixed; left: 45px; top: 220px; width: 300px; z-index: 9999; font-family: 'Plus Jakarta Sans', sans-serif; display: none;" id="garden-floating-sidebar">
+            <div style="position: fixed; left: 0px; top: 220px; width: 300px; z-index: 9999; font-family: 'Plus Jakarta Sans', sans-serif; display: none;" id="garden-floating-sidebar">
                 <div style="background: #ffffff; padding: 25px; box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.5); border-radius: 0px;">
                     <div style="text-align: center; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 15px; margin-bottom: 20px;">
                         <div class="garden-widget-title" style="font-family: 'Dancing Script', cursive; font-size: 3.6em; font-weight: 700; margin: 15px 0; line-height: 1;">
@@ -162,3 +162,4 @@
 
     } catch (e) { console.error("Kertfigyelő hiba:", e); }
 })();
+
