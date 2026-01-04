@@ -4,43 +4,29 @@
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
         #smart-garden-widget { width: 300px; text-align: left; }
-        /* Esztétikus 18px belső távolság, szögletes élek */
         .garden-main-card { 
             background: #ffffff !important; 
             padding: 18px; 
             margin-bottom: 20px !important; 
             box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.5) !important;
             border-radius: 0 !important;
+            height: 440px; /* TELJESEN FIX MAGASSÁG A WIDGETNEK */
+            display: flex;
+            flex-direction: column;
         }
         
-        /* Arányos margók a címnek */
-        .garden-title { 
-            font-family: 'Dancing Script', cursive !important; 
-            font-size: 3.6em !important; 
-            text-align: center !important; 
-            margin: 5px 0 12px 0 !important; 
-            line-height: 1.1; 
-        }
+        .garden-title { font-family: 'Dancing Script', cursive !important; font-size: 3.6em !important; text-align: center !important; margin: 5px 0 12px 0 !important; line-height: 1.1; }
+        .section-title { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; text-transform: uppercase; letter-spacing: 1.2px; margin: 12px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid rgba(0,0,0,0.06); }
         
-        /* Szekciók közötti "levegő" finomhangolva */
-        .section-title { 
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            font-weight: 800 !important; font-size: 16px !important; 
-            text-transform: uppercase; letter-spacing: 1.2px; 
-            margin: 15px 0 8px 0; 
-            padding-bottom: 4px; 
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-        }
-        
-        .carousel-wrapper { position: relative; min-height: 90px; margin-bottom: 5px; overflow: hidden; }
+        /* FIX CAROUSEL MAGASSÁG - Nem fog ugrálni váltáskor */
+        .carousel-wrapper { position: relative; height: 110px; margin-bottom: 5px; overflow: hidden; }
         .carousel-item { 
-            position: absolute; top: 0; left: 0; width: 100%; opacity: 0; visibility: hidden; 
-            transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out; 
-            transform: translateY(8px); 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; visibility: hidden; 
+            transition: opacity 1.2s ease-in-out; 
         }
-        .carousel-item.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .carousel-item.active { opacity: 1; visibility: visible; }
 
-        .card-container { position: relative; padding-left: 14px; min-height: 80px; }
+        .card-container { position: relative; padding-left: 14px; height: 100%; overflow: hidden; }
         .card-line { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
         
         .card-type-alert { background: #b91c1c !important; }
@@ -48,29 +34,12 @@
         .card-type-info { background: #6691b3 !important; }
         .card-type-none { background: #94a3b8 !important; }
         
-        .event-name { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; margin-bottom: 2px; }
+        .event-name { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .event-range { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 9px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; opacity: 0.8; }
-        .event-msg { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 13px; line-height: 1.45; color: #334155; }
+        .event-msg { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 12.5px; line-height: 1.4; color: #334155; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
         
-        .garden-footer { 
-            text-align: center; 
-            font-family: 'Plus Jakarta Sans', sans-serif !important; 
-            font-size: 9px; 
-            margin-top: 15px; 
-            padding-top: 8px; 
-            line-height: 1.4; 
-            border-top: 1px solid rgba(0,0,0,0.05); 
-            opacity: 0.7;
-        }
-        
-        /* GOMB: Szögletes, kényelmes kattintási felülettel */
-        .loc-btn { 
-            width: 100%; cursor: pointer; padding: 10px; 
-            font-family: 'Plus Jakarta Sans', sans-serif !important; 
-            font-size: 10px; margin-bottom: 5px; 
-            text-transform: uppercase; font-weight: 800; 
-            border: none; outline: none; border-radius: 0 !important;
-        }
+        .garden-footer { text-align: center; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 9px; margin-top: auto; padding-top: 8px; line-height: 1.4; border-top: 1px solid rgba(0,0,0,0.05); opacity: 0.7; }
+        .loc-btn { width: 100%; cursor: pointer; padding: 10px; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px; margin-bottom: 5px; text-transform: uppercase; font-weight: 800; border: none; outline: none; border-radius: 0 !important; }
     `;
     document.head.appendChild(styleSheet);
 
@@ -79,12 +48,15 @@
 
     function checkDay(rule, weather, date, i) {
         const c = rule.conditions || {};
+        const windKey = rule.type === 'alert' ? 'wind_gusts_10m_max' : 'wind_speed_10m_max';
         const dayRain = weather.daily.precipitation_sum[i] || 0;
-        const windKey = weather.daily.wind_gusts_10m_max !== undefined ? 'wind_gusts_10m_max' : 'wind_speed_10m_max';
         const dayWind = weather.daily[windKey][i] || 0;
+        
+        if (c.wind_min !== undefined && dayWind < c.wind_min) return false;
+        if (c.wind_max !== undefined && dayWind > c.wind_max) return false;
         if (c.rain_min !== undefined && dayRain < c.rain_min) return false;
         if (c.rain_max !== undefined && dayRain > c.rain_max) return false;
-        if (c.wind_max !== undefined && dayWind > c.wind_max) return false;
+        
         const seasons = rule.seasons || (rule.season ? [rule.season] : null);
         if (seasons) {
             const isInSeason = (d, s, e) => {
@@ -173,7 +145,7 @@
                     ${renderZone(results.filter(r => r.type === 'window'), null, 'window')}
                     <div class="section-title">Teendők</div>
                     ${renderZone(results.filter(r => r.type !== 'alert' && r.type !== 'window'), { range: 'MA', title: 'Pihenj!', msg: 'Élvezd a kertet.', type: 'none' }, 'info')}
-                    <div class="garden-footer">Last updated: ${lastUpdate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})}<br>Winter Skin Edition - v3.5.8</div>
+                    <div class="garden-footer">Last updated: ${lastUpdate.toLocaleTimeString('hu-HU', {hour:'2-digit', minute:'2-digit'})}<br>Winter Skin Edition - v3.6.0</div>
                 </div>`;
             window.gardenAction = () => {
                 if (isPers) { storage.removeItem('garden-lat'); storage.removeItem('garden-lon'); storage.removeItem('garden-weather-cache'); location.reload(); }
