@@ -5,21 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kertfigyelő</title>
     <style>
-        body { 
-            background: transparent; 
-            overflow: hidden; 
-        }
-
-        #kertfigyelo { 
-            display: inline-block;
-            width: 300px; 
-            background: #ffffff !important;
-            border: none !important;
-            box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.5) !important;
-            box-sizing: border-box;
-            pointer-events: none; 
-            vertical-align: top;
-        }
+        <style>
+    body { 
+        margin: 0; 
+        padding: 0; 
+        background: transparent; 
+        overflow: hidden; 
+    }
+    #kertfigyelo { 
+        width: 100%; /* Kitölti az iframe szélességét */
+        display: block;
+        background: transparent;
+        pointer-events: none; 
+    }
+</style>
 
         #kertfigyelo button, 
         #kertfigyelo .loc-btn {
