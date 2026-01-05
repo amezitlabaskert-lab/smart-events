@@ -1,5 +1,5 @@
 (async function() {
-    // 1. Fontok és Stílusok (v3.6.8 - UX Time-Badges + Winter Skin)
+    // 1. Fontok és Stílusok (v3.6.9 - HungaroMet Integrated)
     const fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap';
     fontLink.rel = 'stylesheet';
@@ -31,18 +31,13 @@
         .card-type-info { background: #6691b3 !important; }
         .card-type-none { background: #94a3b8 !important; }
         .event-name { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; margin-bottom: 2px; color: #1e293b; }
-        
-        /* Idő-badge stílusok a jobb UX érdekében */
         .event-range { display: flex; align-items: center; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 11px !important; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; color: #64748b; }
         .time-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px !important; font-weight: 800; margin-right: 5px; vertical-align: middle; }
         .time-urgent { background: #b91c1c; color: #fff; animation: pulse-invitation 2s infinite; }
         .time-warning { background: #ea580c; color: #fff; }
         .time-soon { background: #64748b; color: #fff; }
-
         .event-msg { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 14px !important; line-height: 1.45; color: #334155; }
         .garden-footer { text-align: center; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px !important; margin-top: auto; padding-top: 8px; line-height: 1.4; border-top: 1px solid rgba(0,0,0,0.05); opacity: 0.6; }
-        
-        /* A loc-btn stílusát a CSS-ed winter-skin része felülírja, de itt az alap */
         .loc-btn { 
             width: 100%; cursor: pointer; padding: 10px; font-family: 'Plus Jakarta Sans', sans-serif !important; 
             font-size: 10px; margin-bottom: 5px; text-transform: uppercase; font-weight: 800; border: none; 
@@ -102,24 +97,35 @@
         if (!widgetDiv) return;
         
         try {
-            // Isaszeg koordináták: 47.5136, 19.3735
-            let lat = 47.5136, lon = 19.3735, isPers = false;
+            let lat = 47.5136, lon = 19.3735, isPers = false, userCity = "Gödöllő";
             const sLat = localStorage.getItem('garden-lat'), sLon = localStorage.getItem('garden-lon');
             if (sLat && sLon) { lat = Number(sLat); lon = Number(sLon); isPers = true; }
+
+            // Látogató városának megállapítása IP alapján a riasztások szűréséhez
+            try {
+                const geo = await fetch('https://ipapi.co/json/');
+                const gData = await geo.json();
+                userCity = gData.city || "Gödöllő";
+            } catch(e) { console.log("Geo hiba"); }
 
             const cached = localStorage.getItem('garden-weather-cache');
             let weather, lastUpdate;
 
             if (cached) {
                 const p = JSON.parse(cached);
-                // Félórás (1800000ms) cache idő
                 if (Date.now() - p.ts < 1800000 && Math.abs(p.lat - lat) < 0.01) {
                     weather = p.data; lastUpdate = new Date(p.ts);
                 }
             }
 
-            const rRes = await fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json');
-            const rules = await rRes.json();
+            // Szabályok és HungaroMet riasztások lekérése
+            const [rulesRes, hungaroRes] = await Promise.all([
+                fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/smart-events/main/blog-scripts.json'),
+                fetch('https://raw.githubusercontent.com/amezitlabaskert-lab/workflows/main/riasztasok.json')
+            ]);
+            
+            const rules = await rulesRes.json();
+            const hData = await hungaroRes.json();
 
             if (!weather) {
                 const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,precipitation_sum&past_days=7&timezone=auto`);
@@ -129,6 +135,21 @@
             }
 
             const results = [];
+            
+            // 1. HungaroMet riasztások feldolgozása (SAJÁT JÁRÁSRA)
+            if (hData.alerts) {
+                const myAlert = hData.alerts.find(a => a.j.some(jaras => userCity.includes(jaras.replace('i',''))));
+                if (myAlert) {
+                    results.push({
+                        range: `<span class="time-badge time-urgent">MOST</span>`,
+                        title: `MET: ${myAlert.v}`,
+                        msg: `Hivatalos riasztás érvényben ${userCity} környékén. Fokozat: ${myAlert.sz}.`,
+                        type: 'alert'
+                    });
+                }
+            }
+
+            // 2. Open-Meteo alapú szabályok (Open-Meteo)
             const todayStr = new Date().toISOString().split('T')[0];
             const noon = d => new Date(d).setHours(12,0,0,0);
 
@@ -153,9 +174,7 @@
                 if (range && noon(range.end) >= noon(todayStr)) {
                     const fmt = (date, isStart) => {
                         const diff = Math.round((noon(date) - noon(todayStr)) / 86400000);
-                        let timeLabel = "";
-                        let urgencyClass = "";
-
+                        let timeLabel = "", urgencyClass = "";
                         if (isStart) {
                             if (diff === 0) { timeLabel = "MA ESTE"; urgencyClass = "time-urgent"; }
                             else if (diff === 1) { timeLabel = "HOLNAP"; urgencyClass = "time-warning"; }
@@ -165,11 +184,9 @@
                         }
                         return date.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}).toUpperCase().replace('.','');
                     };
-
                     const dateRangeStr = (noon(range.start) !== noon(range.end)) 
                         ? fmt(range.start, true) + ' — ' + fmt(range.end, false)
                         : fmt(range.start, true);
-
                     results.push({ range: dateRangeStr, title: rule.name, msg: rule.message, type: rule.type });
                 }
             });
@@ -198,7 +215,7 @@
                     ${renderZone(results.filter(r => r.type === 'window'), null, 'window')}
                     <div class="section-title">Teendők</div>
                     ${renderZone(results.filter(r => r.type !== 'alert' && r.type !== 'window'), getSeasonalFallback('info'), 'info')}
-                    <div class="garden-footer">Last updated: ${lastUpdate.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'})}<br>v3.6.8 - UX Edition</div>
+                    <div class="garden-footer">Last updated: ${lastUpdate.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'})}<br>v3.6.9 - HungaroMet Ready</div>
                 </div>`;
 
             document.getElementById('locBtn').onclick = () => {
