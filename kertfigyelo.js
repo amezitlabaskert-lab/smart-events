@@ -70,7 +70,7 @@
         return true;
     }
 
-    const renderZone = (items, id) => {
+const renderZone = (items, id) => {
         if (!items.length) return `<div class="carousel-wrapper" style="display:flex; align-items:center; justify-content:center; opacity:0.3; font-size:12px;">Nincs aktuális esemény</div>`;
         return `<div id="${id}-carousel" class="carousel-wrapper">${items.map((item, idx) => {
             let stickyMsg = item.msg.replace(/ (a|az|is|s|e|de|ha|ne) /gi, ' $1\u00A0');
@@ -84,9 +84,7 @@
                 <div class="card-container">
                     <div class="card-line card-type-${item.type}"></div>
                     <div class="event-name">${item.title}</div>
-${item.type !== 'none' ? `<div class="event-range">${item.range}</div>` : ''}
-<div class="event-msg">${msgHtml}</div>
-                    <div class="event-range">${item.range}</div>
+                    ${item.type !== 'none' ? `<div class="event-range">${item.range}</div>` : ''}
                     <div class="event-msg">${msgHtml}</div>
                 </div>
             </div>`;
@@ -195,5 +193,6 @@ ${item.type !== 'none' ? `<div class="event-range">${item.range}</div>` : ''}
     }
     init();
 })();
+
 
 
