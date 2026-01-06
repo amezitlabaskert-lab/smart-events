@@ -1,5 +1,5 @@
 (async function() {
-    const CACHE_VERSION = 'v4.1.0'; 
+    const CACHE_VERSION = 'v4.2.0'; 
 
     const fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap';
@@ -136,7 +136,7 @@
                     } else if (range) break;
                 }
                 if (range && noon(range.end) >= noon(todayStr)) {
-                    rawResults.push({ id: rule.id, start: range.start, end: range.end, title: rule.name, msg: rule.message, type: rule.type });
+                    rawResults.push({ id: rule.id, start: range.start, end: range.end, title: rule.name, msg: rule.message, type: rule.type, category: rule.category });
                 }
             });
 
@@ -153,12 +153,14 @@
             }
 
             const results = filtered.map(item => {
-                const id = item.id || "";
-                const isSzezonalis = id.includes("madar") || id.includes("szezon");
+                const isSzezonalis = item.category === "seasonal";
+                const isSzemle = item.category === "check";
+                
                 const fmt = (date, isStart) => {
                     const diff = Math.round((noon(date) - noon(todayStr)) / 86400000);
                     if (isStart) {
                         if (isSzezonalis) return `<span class="time-badge type-szezon">SZEZONÁLIS</span>`;
+                        if (isSzemle) return `<span class="time-badge type-szemle">VISSZATEKINTŐ</span>`;
                         const cls = diff <= 0 ? "time-urgent" : (diff === 1 ? "time-warning" : "time-soon");
                         const label = diff < 0 ? "FOLYAMATBAN" : (diff === 0 ? "MA" : (diff === 1 ? "HOLNAP" : diff + " NAP MÚLVA"));
                         return `<span class="time-badge ${cls}">${label}</span>`;
