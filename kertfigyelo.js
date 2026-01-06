@@ -173,16 +173,13 @@
                 }
             });
 
-            // ÚJ: OKOS RENDERZÓNA (Kötőszó-ragasztó + Mondat-blokkok)
             const renderZone = (items, fallback, id) => {
                 const display = items.length ? items : (fallback ? [fallback] : []);
                 if (!display.length) return '';
                 return `<div id="${id}-carousel" class="carousel-wrapper">${display.map((item, idx) => {
                     
-                    // Kötőszavak összeragasztása a következő szóval (\u00A0 = nem törhető szóköz)
                     let stickyMsg = item.msg.replace(/ (a|az|is|s|e|de|ha|ne) /gi, ' $1\u00A0');
                     
-                    // Mondatok szétszedése és blokkosítása
                     const sentenceParts = stickyMsg.split(/([.!?])\s+/);
                     let formattedHtml = "";
                     for (let i = 0; i < sentenceParts.length; i += 2) {
@@ -248,3 +245,4 @@
     }
     init();
 })();
+
