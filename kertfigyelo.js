@@ -5,7 +5,7 @@
     fontLink.rel = 'stylesheet';
     document.head.appendChild(fontLink);
 
-    // 2. Stílusok finomhangolása
+    // 2. Stílusok
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
         @keyframes pulse-invitation {
@@ -54,7 +54,7 @@
             line-height: 1.5; 
             color: #334155;
             text-align: left;
-            white-space: pre-line; /* Megjeleníti a \n sortöréseket */
+            white-space: pre-line;
             word-wrap: break-word;
         }
 
@@ -70,7 +70,6 @@
     `;
     document.head.appendChild(styleSheet);
 
-    // 3. Segédfüggvények (Szezonális és Logikai)
     const getSeasonalFallback = (type) => {
         const month = new Date().getMonth() + 1;
         const isWinter = month === 12 || month <= 2;
@@ -82,7 +81,7 @@
             if (isSummer) return { range: "NYÁR", title: "🧊 Kellemes klíma", msg: "Nincs hőségriadó, élvezd a kertet!", type: "none" };
             return { range: "ŐSZ", title: "☁️ Szelíd ősz", msg: "Viharmentes, nyugodt időjárás.", type: "none" };
         } else {
-            if (isWinter) return { range: "TÉL", title: "☕ Téli álom", msg: "Tea, takaró és tervezgetés.", type: "none" };
+            if (isWinter) return { range: "TÉL", title: "☕ Téli álom", msg: "Tea, takaró és tervezgetés. A kert is pihen.", type: "none" };
             if (isSpring) return { range: "TAVASZ", title: "🌱 Ébredező kert", msg: "Figyeld az első rügyeket!", type: "none" };
             if (isSummer) return { range: "NYÁR", title: "☀️ Mezítlábas idő", msg: "Élvezd a füvet a talpad alatt!", type: "none" };
             return { range: "ŐSZ", title: "🍂 Színkavalkád", msg: "Lassulj le az őszi fényekkel.", type: "none" };
@@ -178,30 +177,29 @@
                         }
                         return date.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}).toUpperCase().replace('.','');
                     };
-
                     const dateRangeStr = (noon(range.start) !== noon(range.end)) 
                         ? fmt(range.start, true) + ' — ' + fmt(range.end, false)
                         : fmt(range.start, true);
 
-                    // MONDATOK SZÉTSZEDÉSE: Pont utáni szóköz lecserélése sortörésre
-                    const smartMsg = rule.message.replace(/([.!?])\s+/g, '$1\n');
-
-                    results.push({ range: dateRangeStr, title: rule.name, msg: smartMsg, type: rule.type });
+                    results.push({ range: dateRangeStr, title: rule.name, msg: rule.message, type: rule.type });
                 }
             });
-
+            
             const renderZone = (items, fallback, id) => {
                 const display = items.length ? items : (fallback ? [fallback] : []);
                 if (!display.length) return '';
-                return `<div id="${id}-carousel" class="carousel-wrapper">${display.map((item, idx) => `
+                return `<div id="${id}-carousel" class="carousel-wrapper">${display.map((item, idx) => {
+                    const smartMsg = item.msg.replace(/([.!?])\s+/g, '$1\n');
+                    return `
                     <div class="carousel-item ${idx === 0 ? 'active' : ''}">
                         <div class="card-container">
                             <div class="card-line card-type-${item.type}"></div>
                             <div class="event-name">${item.title}</div>
                             <div class="event-range">${item.range}</div>
-                            <div class="event-msg">${item.msg}</div>
+                            <div class="event-msg">${smartMsg}</div>
                         </div>
-                    </div>`).join('')}</div>`;
+                    </div>`;
+                }).join('')}</div>`;
             };
 
             widgetDiv.innerHTML = `
