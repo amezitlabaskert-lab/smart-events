@@ -1,5 +1,8 @@
 [
   {
+    "_comment": "=== 1. KRITIKUS IDŐJÁRÁSI RIASZTÁSOK ==="
+  },
+  {
     "_comment": "1.",
     "id": "viharos-szel-riado",
     "name": "💨 Viharos szél",
@@ -49,16 +52,33 @@
     "group": "aszaly",
     "priority": 10,
     "category": "weather",
-    "conditions": {
-      "temp_max_below": -1,
-      "snow_max": 0,
-      "wind_gusts_min_any": 30,
-      "days_min": 3
-    },
+    "conditions": { "temp_max_below": -1, "snow_max": 0, "wind_gusts_min_any": 30, "days_min": 3 },
     "message": "Téli aszály: nincs hó, tartós a fagy és szeles az idő. Fagymentes időben öntözd meg az örökzöldeket!"
   },
   {
     "_comment": "6.",
+    "id": "nyari-aszaly-pro",
+    "name": "🔥 Aszályriadó",
+    "type": "alert",
+    "group": "aszaly",
+    "priority": 10,
+    "category": "weather",
+    "seasons": [ { "start": "06-01", "end": "08-31" } ],
+    "conditions": { "temp_above": 28, "rain_max": 3, "days_min": 5 },
+    "message": "Tartós hőség eső nélkül. Kritikus vízhiány a talajban!"
+  },
+  {
+    "_comment": "7.",
+    "id": "extrem-hoseg",
+    "name": "🌡️ Extrém Hőség",
+    "type": "alert",
+    "category": "weather",
+    "seasons": [ { "start": "06-01", "end": "08-31" } ],
+    "conditions": { "temp_above": 35 },
+    "message": "35°C feletti hőség! Perzselő nap, védekezz mélyöntözéssel!"
+  },
+  {
+    "_comment": "8.",
     "id": "honyomas-veszely",
     "name": "❄️ Hónyomás riadó",
     "type": "alert",
@@ -67,34 +87,10 @@
     "message": "Jelentős friss hó esett! Rázd le a havat az örökzöldekről, mielőtt letörnek az ágak!"
   },
   {
-    "_comment": "7.",
-    "id": "szemle-havazas",
-    "name": "🔎 Havazás utáni szemle",
-    "type": "info",
-    "category": "check",
-    "conditions": { "snow_min_any": 1, "days_min": 2 },
-    "message": "Hó esett a közelmúltban. Ellenőrizd a növényeket hónyomás miatt!"
-  },
-  {
-    "_comment": "8.",
-    "id": "szemle-eso",
-    "name": "🔎 Eső utáni szemle",
-    "type": "info",
-    "category": "check",
-    "conditions": { "rain_min_any": 15, "days_min": 2 },
-    "message": "Jelentős eső esett az elmúlt napokban. Ellenőrizd a vízelvezetést!"
+    "_comment": "=== 2. KERTI LAKÓK (FAUNA) ==="
   },
   {
     "_comment": "9.",
-    "id": "szemle-szel",
-    "name": "🔎 Szél utáni szemle",
-    "type": "info",
-    "category": "check",
-    "conditions": { "wind_gusts_min_any": 45, "days_min": 2 },
-    "message": "Erős széllökések voltak az elmúlt napokban. Nézz rá a támrendszerekre!"
-  },
-  {
-    "_comment": "10.",
     "id": "madaretetes-szezon",
     "name": "🐦 Madáretetés",
     "type": "info",
@@ -106,7 +102,7 @@
     "message": "Beköszöntött a hideg. Töltsd fel a madáretetőket!"
   },
   {
-    "_comment": "11.",
+    "_comment": "10.",
     "id": "madaretetes-ho",
     "name": "❄️ Kritikus etetés",
     "type": "alert",
@@ -117,7 +113,7 @@
     "message": "Hótakaró fedi a tájat, nehezebb táplálékot találni. Tegyél ki eleséget!"
   },
   {
-    "_comment": "12.",
+    "_comment": "11.",
     "id": "madaretetes-stop",
     "name": "🚫 Etetés leállítása",
     "type": "alert",
@@ -128,7 +124,7 @@
     "message": "Itt a költési szezon! Ne etess tovább magvakkal, hagyd a szülőket rovarozni!"
   },
   {
-    "_comment": "13.",
+    "_comment": "12.",
     "id": "madaritatas-tel",
     "name": "💧 Téli itatás",
     "type": "alert",
@@ -140,7 +136,7 @@
     "message": "Fagyos idő van! A természetes vizek befagytak. Figyelj az itatókra!"
   },
   {
-    "_comment": "14.",
+    "_comment": "13.",
     "id": "madaritatas-nyar",
     "name": "💧 Nyári itatás",
     "type": "info",
@@ -152,14 +148,27 @@
     "message": "Kánikula van. Frissítsd a vizet a madáritatóban!"
   },
   {
+    "_comment": "14.",
+    "id": "sun-teli-alom",
+    "name": "🦔 Süni téli álom",
+    "type": "info",
+    "group": "sun-szerviz",
+    "priority": 1,
+    "category": "seasonal",
+    "seasons": [ { "start": "11-01", "end": "03-15" } ],
+    "message": "A sünik téli álmot alszanak a lombtalpak alatt. Ne bolygasd a kert eldugott sarkait!"
+  },
+  {
     "_comment": "15.",
-    "id": "lemoso-permetezes",
-    "name": "💦 Lemosó permetezés",
-    "type": "window",
-    "category": "weather",
-    "seasons": [ { "start": "02-10", "end": "03-25" } ],
-    "conditions": { "temp_above": 5, "wind_max": 12, "rain_max": 0 },
-    "message": "Ideális ablak a lemosó permetezéshez: szélcsend és száraz növényzet."
+    "id": "sun-ebredes",
+    "name": "🦔 Süni ébredezés",
+    "type": "alert",
+    "group": "sun-szerviz",
+    "priority": 10,
+    "category": "seasonal",
+    "seasons": [ { "start": "03-16", "end": "04-30" } ],
+    "conditions": { "temp_above": 10 },
+    "message": "A sünik ébrednek! Nagyon szomjasak és éhesek. Tegyél ki nekik lapos tálba vizet!"
   },
   {
     "_comment": "16.",
@@ -197,28 +206,129 @@
   },
   {
     "_comment": "19.",
-    "id": "extrem-hoseg",
-    "name": "🌡️ Extrém Hőség",
-    "type": "alert",
-    "category": "weather",
-    "seasons": [ { "start": "06-01", "end": "08-31" } ],
-    "conditions": { "temp_above": 35 },
-    "message": "35°C feletti hőség! Perzselő nap, védekezz mélyöntözéssel!"
+    "id": "mehecske-hotel",
+    "name": "🐝 Magányos méhek",
+    "type": "info",
+    "category": "seasonal",
+    "seasons": [ { "start": "03-10", "end": "04-20" } ],
+    "conditions": { "temp_above": 12 },
+    "message": "A faliméhek megkezdik a falazást a darázsgarázsokban. Figyeld az intenzív forgalmat!"
   },
   {
     "_comment": "20.",
-    "id": "nyari-aszaly-pro",
-    "name": "🔥 Aszályriadó",
-    "type": "alert",
-    "group": "aszaly",
-    "priority": 10,
-    "category": "weather",
-    "seasons": [ { "start": "06-01", "end": "08-31" } ],
-    "conditions": { "temp_above": 28, "rain_max": 3, "days_min": 5 },
-    "message": "Tartós hőség eső nélkül. Kritikus vízhiány a talajban!"
+    "id": "szentjanosbogar",
+    "name": "✨ Szentjánosbogár rajzás",
+    "type": "info",
+    "category": "seasonal",
+    "seasons": [ { "start": "06-15", "end": "07-05" } ],
+    "message": "Varázslat az éjszakában: nézz körül sötétedés után, hátha látsz lámpásokat a fűben!"
+  },
+  {
+    "_comment": "=== 3. KERTI MUNKÁK (WINDOW) ==="
   },
   {
     "_comment": "21.",
+    "id": "lemoso-permetezes",
+    "name": "💦 Lemosó permetezés",
+    "type": "window",
+    "category": "weather",
+    "seasons": [ { "start": "02-10", "end": "03-25" } ],
+    "conditions": { "temp_above": 5, "wind_max": 12, "rain_max": 0 },
+    "message": "Ideális ablak a lemosó permetezéshez: szélcsend és száraz növényzet."
+  },
+  {
+    "_comment": "22.",
+    "id": "tavaszi-metszes",
+    "name": "✂️ Tavaszi metszés",
+    "type": "window",
+    "category": "weather",
+    "seasons": [ { "start": "02-15", "end": "03-31" } ],
+    "conditions": { "temp_min_above": 0, "rain_max": 0 },
+    "message": "Fagymentes, száraz idő: ideális a fák és cserjék metszéséhez. A sebek most gyorsan gyógyulnak!"
+  },
+  {
+    "_comment": "23.",
+    "id": "gyepszelloztetes",
+    "name": "🌱 Gyepszellőztetés",
+    "type": "window",
+    "group": "lawn_care",
+    "priority": 10,
+    "category": "weather",
+    "seasons": [ { "start": "03-20", "end": "04-30" } ],
+    "conditions": { "temp_above": 12, "rain_max": 0, "days_min": 2 },
+    "message": "Már elég meleg a talaj a gyepszellőztetéshez. Száraz időben végezd, utána jöhet a tápanyag!"
+  },
+  {
+    "_comment": "24.",
+    "id": "tavaszi-gyep-tap",
+    "name": "🌱 Tavaszi gyeptrágya",
+    "type": "window",
+    "group": "lawn_care",
+    "priority": 5,
+    "category": "weather",
+    "seasons": [ { "start": "03-01", "end": "05-15" } ],
+    "conditions": { "temp_above": 8, "rain_max": 0 },
+    "message": "Tavaszi indító trágyázás: száraz fűre szórd ki, majd utána alaposan öntözd be a területet!"
+  },
+  {
+    "_comment": "25.",
+    "id": "nyari-gyep-tap",
+    "name": "☀️ Nyári gyeptrágya",
+    "type": "window",
+    "group": "lawn_care",
+    "priority": 5,
+    "category": "weather",
+    "seasons": [ { "start": "06-01", "end": "08-15" } ],
+    "conditions": { "temp_above": 20, "rain_max": 0 },
+    "message": "Nyári stresszkezelő tápanyag: száraz fűre szórd ki, majd utána alaposan öntözd be a területet!"
+  },
+  {
+    "_comment": "26.",
+    "id": "oszi-gyep-tap",
+    "name": "🍂 Őszi gyeptrágya",
+    "type": "window",
+    "group": "lawn_care",
+    "priority": 5,
+    "category": "weather",
+    "seasons": [ { "start": "09-01", "end": "10-31" } ],
+    "conditions": { "temp_above": 10, "rain_max": 0 },
+    "message": "Káliumtúlsúlyos őszi felkészítés: száraz fűre szórd ki, majd utána alaposan öntözd be!"
+  },
+  {
+    "_comment": "=== 4. UTÓLAGOS SZEMLE (CHECK) ==="
+  },
+  {
+    "_comment": "27.",
+    "id": "szemle-havazas",
+    "name": "🔎 Havazás utáni szemle",
+    "type": "info",
+    "category": "check",
+    "conditions": { "snow_min_any": 1, "days_min": 2 },
+    "message": "Hó esett a közelmúltban. Ellenőrizd a növényeket hónyomás miatt!"
+  },
+  {
+    "_comment": "28.",
+    "id": "szemle-eso",
+    "name": "🔎 Eső utáni szemle",
+    "type": "info",
+    "category": "check",
+    "conditions": { "rain_min_any": 15, "days_min": 2 },
+    "message": "Jelentős eső esett az elmúlt napokban. Ellenőrizd a vízelvezetést!"
+  },
+  {
+    "_comment": "29.",
+    "id": "szemle-szel",
+    "name": "🔎 Szél utáni szemle",
+    "type": "info",
+    "category": "check",
+    "conditions": { "wind_gusts_min_any": 45, "days_min": 2 },
+    "message": "Erős széllökések voltak az elmúlt napokban. Nézz rá a támrendszerekre!"
+  },
+  {
+    "_comment": "=== 5. SZEZONÁLIS ÉLETÉRZÉS (NONE) ==="
+  },
+  {
+    "_comment": "30.",
     "id": "szezon-tel",
     "name": "☕ Téli álom",
     "type": "none",
@@ -227,7 +337,7 @@
     "message": "Tea, takaró és tervezgetés. A kert is pihen."
   },
   {
-    "_comment": "22.",
+    "_comment": "31.",
     "id": "szezon-tavasz",
     "name": "🌱 Ébredező kert",
     "type": "none",
@@ -236,7 +346,7 @@
     "message": "Figyeld az első rügyeket! Kezdődik a tavaszi zsongás."
   },
   {
-    "_comment": "23.",
+    "_comment": "32.",
     "id": "szezon-nyar",
     "name": "🐚 Mezítlábas idő",
     "type": "none",
@@ -245,12 +355,22 @@
     "message": "Élvezd a füvet a talpad alatt! Ideális kerti idő van."
   },
   {
-    "_comment": "24.",
+    "_comment": "33.",
     "id": "szezon-osz",
     "name": "🎨 Színkavalkád",
     "type": "none",
     "category": "seasonal",
     "seasons": [ { "start": "09-01", "end": "11-30" } ],
     "message": "Lassulj le az őszi fényekkel. Gyűjtsd a színeket!"
+  },
+  {
+    "_comment": "34.",
+    "id": "kerti-party-ido",
+    "name": "🥂 Kerti est",
+    "type": "none",
+    "category": "weather",
+    "seasons": [ { "start": "05-01", "end": "09-30" } ],
+    "conditions": { "temp_above": 20, "wind_max": 10, "rain_max": 0 },
+    "message": "Tökéletes, szélcsendes este a kerti kikapcsolódáshoz. Élvezd a kerted gyümölcsét!"
   }
 ]
