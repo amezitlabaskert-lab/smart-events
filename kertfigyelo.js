@@ -84,6 +84,8 @@
                 <div class="card-container">
                     <div class="card-line card-type-${item.type}"></div>
                     <div class="event-name">${item.title}</div>
+${item.type !== 'none' ? `<div class="event-range">${item.range}</div>` : ''}
+<div class="event-msg">${msgHtml}</div>
                     <div class="event-range">${item.range}</div>
                     <div class="event-msg">${msgHtml}</div>
                 </div>
@@ -193,4 +195,5 @@
     }
     init();
 })();
+
 
