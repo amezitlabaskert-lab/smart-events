@@ -166,7 +166,7 @@
                     <button id="locBtn" class="loc-btn">${isPers ? 'Vissza az alaphoz' : 'Saját kertfigyelőt!'}</button>
                     <div class="section-title">Riasztások</div>
                     ${renderZone(alerts, alerts.length === 0 ? getSeasonalFallback('alert') : null, 'alert')}
-                    <div class="section-title">Teendők és Lehetőségek</div>
+                    <div class="section-title">Teendők</div>
                     ${renderZone(otherTasks, otherTasks.length === 0 ? getSeasonalFallback('info') : null, 'tasks')}
                     <div class="garden-footer">Last updated: ${lastUpdate.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'})}<br>v3.8.7 - Brutalist Edition</div>
                 </div>`;
@@ -199,4 +199,5 @@
     }
     init();
 })();
+
 
