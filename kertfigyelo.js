@@ -1,10 +1,11 @@
 (async function() {
-    // 1. Fontok és Stílusok (v3.6.8 - UX Time-Badges + Winter Skin)
+    // 1. Fontok betöltése
     const fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap';
     fontLink.rel = 'stylesheet';
     document.head.appendChild(fontLink);
 
+    // 2. Stílusok finomhangolása
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
         @keyframes pulse-invitation {
@@ -13,11 +14,7 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(71, 85, 105, 0); }
         }
         #kertfigyelo { width: 300px; text-align: left; margin: 0; }
-
-        #kertfigyelo button, #kertfigyelo .loc-btn { 
-            pointer-events: auto !important; 
-            cursor: pointer !important; 
-        }
+        #kertfigyelo button, #kertfigyelo .loc-btn { pointer-events: auto !important; cursor: pointer !important; }
 
         .garden-main-card { 
             background: #ffffff !important;
@@ -29,45 +26,38 @@
             height: 480px;
         }
 
-        }
         .garden-title { font-family: 'Dancing Script', cursive !important; font-size: 3.6em !important; font-weight: 700 !important; text-align: center !important; margin: 5px 0 12px 0 !important; line-height: 1.1; color: #1a1a1a; }
         .section-title { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 14px !important; text-transform: uppercase; letter-spacing: 1.2px; margin: 12px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid rgba(0,0,0,0.06); color: #64748b; }
+        
         .carousel-wrapper { position: relative; height: 125px; margin-bottom: 5px; overflow: hidden; }
         .carousel-item { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; visibility: hidden; transition: opacity 1.2s ease-in-out; }
         .carousel-item.active { opacity: 1; visibility: visible; }
+        
         .card-container { position: relative; padding-left: 14px; height: 100%; }
         .card-line { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
         .card-type-alert { background: #b91c1c !important; }
         .card-type-window { background: #2d6a4f !important; }
         .card-type-info { background: #6691b3 !important; }
         .card-type-none { background: #94a3b8 !important; }
-        .event-name { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; margin-bottom: 2px; color: #1e293b; }
         
+        .event-name { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; margin-bottom: 2px; color: #1e293b; }
         .event-range { display: flex; align-items: center; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 11px !important; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; color: #64748b; }
+        
         .time-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px !important; font-weight: 800; margin-right: 5px; vertical-align: middle; }
         .time-urgent { background: #b91c1c; color: #fff; animation: pulse-invitation 2s infinite; }
         .time-warning { background: #ea580c; color: #fff; }
         .time-soon { background: #64748b; color: #fff; }
 
-        /* ... a többi kód változatlan ... */
-
-.event-msg { 
+        .event-msg { 
             font-family: 'Plus Jakarta Sans', sans-serif !important; 
             font-size: 14px !important; 
             line-height: 1.5; 
             color: #334155;
-            text-align: left;           
-            hyphens: auto;              
+            text-align: left;
+            white-space: pre-line; /* Megjeleníti a \n sortöréseket */
             word-wrap: break-word;
-            overflow-wrap: break-word;
-            padding-right: 5px;         
         }
 
-.event-msg::after {
-    content: "";
-    display: inline-block;
-    width: 100%;
-}
         .garden-footer { text-align: center; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px !important; margin-top: auto; padding-top: 8px; line-height: 1.4; border-top: 1px solid rgba(0,0,0,0.05); opacity: 0.6; }
         
         .loc-btn { 
@@ -80,6 +70,7 @@
     `;
     document.head.appendChild(styleSheet);
 
+    // 3. Segédfüggvények (Szezonális és Logikai)
     const getSeasonalFallback = (type) => {
         const month = new Date().getMonth() + 1;
         const isWinter = month === 12 || month <= 2;
@@ -102,8 +93,7 @@
         const days = cond.days_min || 1;
         if (dayIdx < days - 1) return false;
         const checkCondition = (key, idx) => {
-            let val;
-            const condValue = cond[key];
+            let val; const condValue = cond[key];
             if (key === 'temp_max_below') { val = weather.daily.temperature_2m_max[idx]; return val <= condValue; } 
             else if (key === 'temp_min_below' || key === 'temp_below') { val = weather.daily.temperature_2m_min[idx]; return val <= condValue; } 
             else if (key === 'temp_above') { val = weather.daily.temperature_2m_max[idx]; return val >= condValue; }
@@ -138,7 +128,6 @@
 
             if (cached) {
                 const p = JSON.parse(cached);
-                // Félórás (1800000ms) cache idő
                 if (Date.now() - p.ts < 1800000 && Math.abs(p.lat - lat) < 0.01) {
                     weather = p.data; lastUpdate = new Date(p.ts);
                 }
@@ -179,9 +168,7 @@
                 if (range && noon(range.end) >= noon(todayStr)) {
                     const fmt = (date, isStart) => {
                         const diff = Math.round((noon(date) - noon(todayStr)) / 86400000);
-                        let timeLabel = "";
-                        let urgencyClass = "";
-
+                        let timeLabel = ""; let urgencyClass = "";
                         if (isStart) {
                             if (diff === 0) { timeLabel = "MA ESTE"; urgencyClass = "time-urgent"; }
                             else if (diff === 1) { timeLabel = "HOLNAP"; urgencyClass = "time-warning"; }
@@ -196,7 +183,10 @@
                         ? fmt(range.start, true) + ' — ' + fmt(range.end, false)
                         : fmt(range.start, true);
 
-                    results.push({ range: dateRangeStr, title: rule.name, msg: rule.message, type: rule.type });
+                    // MONDATOK SZÉTSZEDÉSE: Pont utáni szóköz lecserélése sortörésre
+                    const smartMsg = rule.message.replace(/([.!?])\s+/g, '$1\n');
+
+                    results.push({ range: dateRangeStr, title: rule.name, msg: smartMsg, type: rule.type });
                 }
             });
 
@@ -258,15 +248,3 @@
     }
     init();
 })();
-
-
-
-
-
-
-
-
-
-
-
-
