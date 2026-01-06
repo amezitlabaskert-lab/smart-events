@@ -98,7 +98,7 @@
   {
     "_comment": "10.",
     "id": "madaretetes-ho",
-    "name": "❄️ Madáretetetés",
+    "name": "❄️ Madáretetés",
     "type": "alert",
     "group": "fauna_food",
     "priority": 10,
@@ -349,4 +349,5 @@
     "message": "Tökéletes, szélcsendes este a kerti kikapcsolódáshoz. Élvezd a kerted gyümölcsét!"
   }
 ]
+
 
