@@ -1,5 +1,5 @@
 (async function() {
-    const CACHE_VERSION = 'v4.0.7'; 
+    const CACHE_VERSION = 'v4.1.0'; 
 
     const fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap';
@@ -14,7 +14,7 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(71, 85, 105, 0); }
         }
         #kertfigyelo { width: 300px; text-align: left; margin: 0; background: white; }
-        .garden-main-card { background: #ffffff !important; padding: 18px; display: flex; flex-direction: column; box-sizing: border-box; height: 540px; }
+        .garden-main-card { background: #ffffff !important; padding: 18px; display: flex; flex-direction: column; box-sizing: border-box; height: 540px; border: 1px solid #000; }
         .garden-title { font-family: 'Dancing Script', cursive !important; font-size: 3.2em !important; font-weight: 700 !important; text-align: center !important; margin: 5px 0 12px 0 !important; line-height: 1.1; color: #1a1a1a; }
         .section-title { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 14px !important; text-transform: uppercase; letter-spacing: 1.2px; margin: 12px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid rgba(0,0,0,0.06); color: #64748b; }
         .carousel-wrapper { position: relative; height: 165px; margin-bottom: 5px; overflow: hidden; }
@@ -42,32 +42,31 @@
 
     const noon = d => new Date(d).setHours(12,0,0,0);
 
+    function checkCondition(weather, idx, key, val) {
+        const d = weather.daily;
+        if (key === 'temp_max_below') return d.temperature_2m_max[idx] <= val;
+        if (key === 'temp_min_below' || key === 'temp_below') return d.temperature_2m_min[idx] <= val;
+        if (key === 'temp_above') return d.temperature_2m_max[idx] >= val;
+        if (key.startsWith('rain_min')) return d.precipitation_sum[idx] >= val;
+        if (key.startsWith('rain_max')) return d.precipitation_sum[idx] <= val;
+        if (key.startsWith('snow_min')) return d.snowfall_sum[idx] >= val;
+        if (key.startsWith('snow_max')) return d.snowfall_sum[idx] <= val;
+        if (key.includes('wind_gusts') || key.startsWith('wind_min')) return d.wind_gusts_10m_max[idx] >= val;
+        if (key.includes('wind_speed') || key.startsWith('wind_max')) return d.wind_speed_10m_max[idx] <= val;
+        return true;
+    }
+
     function checkSustained(weather, dayIdx, cond) {
         if (!weather?.daily?.time) return false;
         const days = cond.days_min || 1;
         if (dayIdx < days - 1) return false;
-        
-        const checkCondition = (key, idx) => {
-            const val = cond[key];
-            const d = weather.daily;
-            if (key === 'temp_max_below') return d.temperature_2m_max[idx] <= val;
-            if (key === 'temp_min_below' || key === 'temp_below') return d.temperature_2m_min[idx] <= val;
-            if (key === 'temp_above') return d.temperature_2m_max[idx] >= val;
-            if (key.startsWith('rain_min')) return d.precipitation_sum[idx] >= val;
-            if (key.startsWith('rain_max')) return d.precipitation_sum[idx] <= val;
-            if (key.startsWith('snow_min')) return d.snowfall_sum[idx] >= val;
-            if (key.includes('wind_gusts')) return d.wind_gusts_10m_max[idx] >= val;
-            if (key.includes('wind_speed')) return d.wind_speed_10m_max[idx] >= val;
-            if (key.startsWith('wind_min')) return d.wind_gusts_10m_max[idx] >= val; // Fallback
-            if (key.startsWith('wind_max')) return d.wind_speed_10m_max[idx] <= val; // Permetezéshez
-            return true;
-        };
-
         for (const key in cond) {
             if (key === 'days_min') continue;
             const isAny = key.endsWith('_any');
             const res = [];
-            for (let j = 0; j < days; j++) res.push(checkCondition(key, dayIdx - j));
+            for (let j = 0; j < days; j++) {
+                res.push(checkCondition(weather, dayIdx - j, key, cond[key]));
+            }
             if (!(isAny ? res.some(r => r) : res.every(r => r))) return false;
         }
         return true;
@@ -141,49 +140,32 @@
                 }
             });
 
-            // PRIORITÁS ÉS SZŰRÉS
             let filtered = [];
             const highPriority = rawResults.filter(r => r.type !== 'none');
             if (highPriority.length > 0) {
                 const hasStrongFrost = highPriority.some(r => r.id === "eros-fagy-riado");
-                const hasCriticalFeeding = highPriority.some(r => r.id === "madaretetes-ho");
                 filtered = highPriority.filter(r => {
                     if (hasStrongFrost && r.id === "mersekelt-fagy") return false;
-                    if (hasCriticalFeeding && r.id === "madaretetes-szezon") return false;
                     return true;
                 });
             } else {
                 filtered = rawResults.filter(r => r.type === 'none');
             }
 
-            // FORMÁZÁS
             const results = filtered.map(item => {
                 const id = item.id || "";
-                const isSzemle = id.startsWith("szemle");
-                const isSzezonalis = id.includes("madar") || id.includes("szezon") || id.includes("itatas");
-
+                const isSzezonalis = id.includes("madar") || id.includes("szezon");
                 const fmt = (date, isStart) => {
                     const diff = Math.round((noon(date) - noon(todayStr)) / 86400000);
                     if (isStart) {
-                        if (isSzemle) return `<span class="time-badge type-szemle">AKTUÁLIS</span>`;
                         if (isSzezonalis) return `<span class="time-badge type-szezon">SZEZONÁLIS</span>`;
-                        
                         const cls = diff <= 0 ? "time-urgent" : (diff === 1 ? "time-warning" : "time-soon");
                         const label = diff < 0 ? "FOLYAMATBAN" : (diff === 0 ? "MA" : (diff === 1 ? "HOLNAP" : diff + " NAP MÚLVA"));
                         return `<span class="time-badge ${cls}">${label}</span>`;
                     }
-                    // Szemlénél és Szezonálisnál nincs végdátum szöveg
-                    if (isSzemle || isSzezonalis) return "";
                     return date.toLocaleDateString('hu-HU', {month:'short', day:'numeric'}).toUpperCase();
                 };
-
-                let rangeStr = "";
-                if (!isSzemle && !isSzezonalis) {
-                    rangeStr = noon(item.start) !== noon(item.end) ? fmt(item.start, true) + ' — ' + fmt(item.end, false) : fmt(item.start, true);
-                } else {
-                    rangeStr = fmt(item.start, true);
-                }
-
+                let rangeStr = !isSzezonalis ? (noon(item.start) !== noon(item.end) ? fmt(item.start, true) + ' — ' + fmt(item.end, false) : fmt(item.start, true)) : fmt(item.start, true);
                 return { range: rangeStr, title: item.title, msg: item.msg, type: item.type };
             });
 
@@ -198,12 +180,18 @@
                 </div>`;
 
             document.getElementById('locBtn').onclick = () => {
-                if (isPers) { localStorage.removeItem('garden-lat'); localStorage.removeItem('garden-lon'); localStorage.removeItem('garden-weather-cache'); location.reload(); }
-                else { navigator.geolocation.getCurrentPosition(p => {
-                    const {latitude: la, longitude: lo} = p.coords;
-                    if (la > 45.7 && la < 48.6 && lo > 16.1 && lo < 22.9) { localStorage.setItem('garden-lat', la); localStorage.setItem('garden-lon', lo); localStorage.removeItem('garden-weather-cache'); location.reload(); }
-                    else alert("Csak Magyarországon működik.");
-                }, () => alert("Helymeghatározási hiba.")); }
+                if (isPers) { 
+                    localStorage.removeItem('garden-lat'); localStorage.removeItem('garden-lon'); localStorage.removeItem('garden-weather-cache'); location.reload(); 
+                } else { 
+                    navigator.geolocation.getCurrentPosition(p => {
+                        const {latitude: la, longitude: lo} = p.coords;
+                        if (la > 45.7 && la < 48.6 && lo > 16.1 && lo < 22.9) {
+                            localStorage.setItem('garden-lat', la); localStorage.setItem('garden-lon', lo); localStorage.removeItem('garden-weather-cache'); location.reload();
+                        } else {
+                            alert("A funkció csak Magyarország területén érhető el.");
+                        }
+                    }, () => alert("Helymeghatározási hiba.")); 
+                }
             };
 
             const setup = (id, len) => {
@@ -213,11 +201,8 @@
             };
             setup('alert', alerts.length); setup('tasks', others.length);
         } catch(e) { 
-            console.error(e);
             widgetDiv.innerHTML = `<div style="padding:20px; font-size:12px; color:gray; text-align:center;">Hiba az adatok betöltésekor.</div>`;
         }
     }
     init();
 })();
-
-
