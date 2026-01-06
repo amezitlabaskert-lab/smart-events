@@ -102,7 +102,7 @@
     "id": "madaretetes-ho",
     "name": "❄️ Kritikus etetés",
     "type": "alert",
-    "category": "weather",
+    "category": "seasonal",
     "conditions": { "snow_min_any": 1 },
     "message": "Hótakaró fedi a tájat, a madarak nem találnak táplálékot. Tegyél ki eleséget!"
   },
@@ -111,7 +111,7 @@
     "id": "madaritatas-tel",
     "name": "💧 Téli itatás",
     "type": "alert",
-    "category": "weather",
+    "category": "seasonal",
     "seasons": [ { "start": "11-01", "end": "03-15" } ],
     "conditions": { "temp_min_below": 0 },
     "message": "Fagyos idő van! A természetes vizek befagytak. Figyelj az itatókra!"
@@ -130,7 +130,7 @@
     "id": "madaritatas-nyar",
     "name": "💧 Nyári itatás",
     "type": "info",
-    "category": "weather",
+    "category": "seasonal",
     "seasons": [ { "start": "06-01", "end": "08-31" } ],
     "conditions": { "temp_above": 30 },
     "message": "Kánikula van. Frissítsd a vizet a madáritatóban és tegyél bele kavicsokat a méheknek is!"
@@ -170,7 +170,7 @@
     "id": "boroka-diszbogar-rajzas",
     "name": "🪲 Díszbogár rajzás",
     "type": "alert",
-    "category": "weather",
+    "category": "seasonal",
     "seasons": [ { "start": "06-01", "end": "07-15" } ],
     "conditions": { "temp_above": 24, "days_min": 2 },
     "message": "A díszbogarak rajzása várható. Figyeld a borókákat, tujákat és ciprusokat!"
@@ -232,4 +232,5 @@
     "message": "Lassulj le az őszi fényekkel. Gyűjtsd az őszi színeket!"
   }
 ]
+
 
