@@ -15,6 +15,7 @@
         .garden-main-card { 
             background: #ffffff !important; padding: 18px; display: flex; 
             flex-direction: column; box-sizing: border-box; height: 540px; 
+            border: 1px solid #000;
         }
         .garden-title { font-family: 'Dancing Script', cursive !important; font-size: 3.2em !important; font-weight: 700 !important; text-align: center !important; margin: 5px 0 12px 0 !important; line-height: 1.1; color: #1a1a1a; }
         .section-title { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 14px !important; text-transform: uppercase; letter-spacing: 1.2px; margin: 12px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid rgba(0,0,0,0.06); color: #64748b; }
@@ -38,13 +39,6 @@
         .loc-btn { width: 100%; cursor: pointer; padding: 10px; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px; margin-bottom: 5px; text-transform: uppercase; font-weight: 800; border: none; background: #475569; color: white; animation: pulse-invitation 3s infinite ease-in-out; }
     `;
     document.head.appendChild(styleSheet);
-
-    const getSeasonalFallback = (type) => {
-        const month = new Date().getMonth() + 1;
-        const isWinter = month === 12 || month <= 2;
-        if (type === 'alert') return { range: "NYUGODT IDŐ", title: "🛡️ Nincs veszély", msg: "A kert biztonságban van, nem várható szélsőséges időjárás.", type: "none" };
-        return { range: isWinter ? "TÉL" : "AKTUALITÁS", title: isWinter ? "☕ Téli pihenő" : "🌱 Kerti nyugalom", msg: isWinter ? "Tea, takaró és tervezgetés. A kert is pihen." : "Élvezd a kertedet, most nincs sürgős teendő!", type: "none" };
-    };
 
     function checkSustained(weather, dayIdx, cond, ruleType) {
         const days = cond.days_min || 1;
@@ -76,10 +70,9 @@
         return true;
     }
 
-    const renderZone = (items, fallback, id) => {
-        const display = items.length ? items : (fallback ? [fallback] : []);
-        if (!display.length) return '';
-        return `<div id="${id}-carousel" class="carousel-wrapper">${display.map((item, idx) => {
+    const renderZone = (items, id) => {
+        if (!items.length) return `<div class="carousel-wrapper" style="display:flex; align-items:center; justify-content:center; opacity:0.3; font-size:12px;">Nincs aktuális esemény</div>`;
+        return `<div id="${id}-carousel" class="carousel-wrapper">${items.map((item, idx) => {
             let stickyMsg = item.msg.replace(/ (a|az|is|s|e|de|ha|ne) /gi, ' $1\u00A0');
             const sentences = stickyMsg.split(/([.!?])\s+/);
             let msgHtml = "";
@@ -122,7 +115,7 @@
                 localStorage.setItem('garden-weather-cache', JSON.stringify({ ts: lastUpdate.getTime(), data: weather, lat, lon }));
             }
 
-            const rRes = await fetch('https://raw.githack.com/amezitlabaskert-lab/kertfigyelo/main/kertfigyelo_esemenyek.json');
+            const rRes = await fetch('https://raw.githack.com/amezitlabaskert-lab/kertfigyelo/main/kertfigyelo_esemenyek.json?v=' + Date.now());
             const rules = await rRes.json();
 
             const results = [];
@@ -165,10 +158,10 @@
                     <div class="garden-title">${isPers ? 'Kertfigyelőd' : 'Kertfigyelő'}</div>
                     <button id="locBtn" class="loc-btn">${isPers ? 'Vissza az alaphoz' : 'Saját kertfigyelőt!'}</button>
                     <div class="section-title">Riasztások</div>
-                    ${renderZone(alerts, alerts.length === 0 ? getSeasonalFallback('alert') : null, 'alert')}
+                    ${renderZone(alerts, 'alert')}
                     <div class="section-title">Teendők</div>
-                    ${renderZone(otherTasks, otherTasks.length === 0 ? getSeasonalFallback('info') : null, 'tasks')}
-                    <div class="garden-footer">Last updated: ${lastUpdate.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'})}<br>v3.8.7 - Brutalist Edition</div>
+                    ${renderZone(otherTasks, 'tasks')}
+                    <div class="garden-footer">Last updated: ${lastUpdate.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'})}<br>v3.9.0 - Clean Edition</div>
                 </div>`;
 
             document.getElementById('locBtn').onclick = () => {
@@ -193,11 +186,9 @@
                     items[idx].classList.remove('active'); idx = (idx + 1) % items.length; items[idx].classList.add('active');
                 }, 6000);
             };
-            setupCarousel('alert', Math.max(1, alerts.length));
-            setupCarousel('tasks', Math.max(1, otherTasks.length));
+            setupCarousel('alert', alerts.length);
+            setupCarousel('tasks', otherTasks.length);
         } catch(e) { console.error("Kertfigyelo Error:", e); }
     }
     init();
 })();
-
-
