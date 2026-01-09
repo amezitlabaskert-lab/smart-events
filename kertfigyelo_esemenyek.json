@@ -253,7 +253,7 @@
     "category": "weather",
     "seasons": [ { "start": "03-01", "end": "05-15" } ],
     "conditions": { "temp_above": 8, "rain_max": 0 },
-    "message": "Tavaszi indító trágyázás: száraz fűre szórd ki, majd utána alaposan öntözd be a területet!"
+    "message": "Tavaszi, nitrogénbombás indító trágyázás: száraz fűre szórd ki, majd utána alaposan öntözd be a területet!"
   },
   {
     "_comment": "24.",
@@ -265,7 +265,7 @@
     "category": "weather",
     "seasons": [ { "start": "06-01", "end": "08-15" } ],
     "conditions": { "temp_above": 20, "rain_max": 0 },
-    "message": "Nyári stresszkezelő tápanyag: száraz fűre szórd ki, majd utána alaposan öntözd be a területet!"
+    "message": "Nyári, káliumtúlsúlyos, stresszkezelő tápanyag: száraz fűre szórd ki, majd utána alaposan öntözd be a területet!"
   },
   {
     "_comment": "25.",
@@ -353,6 +353,7 @@
     "message": "Tökéletes, szélcsendes este a kerti kikapcsolódáshoz. Élvezd a kerted gyümölcsét!"
   }
 ]
+
 
 
 
