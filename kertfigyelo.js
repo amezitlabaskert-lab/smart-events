@@ -1,8 +1,7 @@
 (async function() {
-    const CACHE_VERSION = 'v4.6.0'; // Frissített verzió
-    const RAIN_THRESHOLD = 8;
+    const CACHE_VERSION = 'v4.7.7'; 
+    const RAIN_THRESHOLD = 8; // mm
 
-    // 1. STÍLUSOK ÉS BETŰKÉSZLET (Csak egyszer fut le)
     const fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap';
     fontLink.rel = 'stylesheet';
@@ -15,21 +14,21 @@
             70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(71, 85, 105, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(71, 85, 105, 0); }
         }
-        #kertfigyelo { width: 300px; text-align: left; margin: 0; background: white; overflow: hidden; }
-        .garden-main-card { background: #ffffff !important; padding: 18px; display: flex; flex-direction: column; box-sizing: border-box; min-height: 480px; border-radius: 0; }
+        #kertfigyelo { width: 300px; text-align: left; margin: 0; background: white; overflow: hidden; border-radius: 0; }
+        .garden-main-card { background: #ffffff !important; padding: 18px; display: flex; flex-direction: column; box-sizing: border-box; min-height: 480px; height: auto; border-radius: 0; pointer-events: none; user-select: none; }
         .garden-title { font-family: 'Dancing Script', cursive !important; font-size: 3.6em !important; font-weight: 700 !important; text-align: center !important; margin: 5px 0 12px 0 !important; line-height: 1.1; color: #1a1a1a; }
         .section-title { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 14px !important; text-transform: uppercase; letter-spacing: 1.2px; margin: 12px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid rgba(0,0,0,0.06); color: #64748b; }
         .carousel-wrapper { position: relative; height: 140px; margin-bottom: 5px; overflow: hidden; }
         .carousel-item { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; visibility: hidden; transition: opacity 1.2s ease-in-out; display: flex; flex-direction: column; justify-content: center; }
         .carousel-item.active { opacity: 1; visibility: visible; }
         .card-container { position: relative; padding-left: 14px; width: 100%; box-sizing: border-box; }
-        .card-line { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+        .card-line { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 0; }
         .card-type-alert { background: #b91c1c !important; }
         .card-type-window { background: #2d6a4f !important; }
         .card-type-info { background: #6691b3 !important; }
         .card-type-none { background: #94a3b8 !important; }
-        .event-name { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; color: #1e293b; line-height: 1.2; }
-        .event-range { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 11px !important; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 8px; }
+        .event-name { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; font-size: 16px !important; margin-bottom: 2px; color: #1e293b; line-height: 1.2; }
+        .event-range { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 11px !important; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; color: #64748b; }
         .event-msg { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 14px !important; line-height: 1.45; color: #334155; }
         .time-badge { display: inline-block; padding: 2px 6px; font-size: 10px !important; font-weight: 800; border-radius: 3px; margin-right: 5px; }
         .type-szezon { background: #1e293b; color: #fff; }
@@ -37,31 +36,44 @@
         .time-urgent { background: #b91c1c; color: #fff; }
         .time-warning { background: #ea580c; color: #fff; }
         .time-soon { background: #64748b; color: #fff; }
-        .garden-footer { text-align: center; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px !important; margin-top: auto; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05); opacity: 0.6; }
-        .loc-btn { width: 100%; cursor: pointer; padding: 10px; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px; margin-bottom: 5px; text-transform: uppercase; font-weight: 800; border: none; background: #475569; color: white; animation: pulse-invitation 3s infinite ease-in-out; pointer-events: auto; }
-        .loc-btn.active { background: #b91c1c; }
+        .garden-footer { text-align: center; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px !important; margin-top: auto; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05); opacity: 0.6; line-height: 1.4; }
+        .loc-btn { width: 100%; cursor: pointer; padding: 10px; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 10px; margin-bottom: 5px; text-transform: uppercase; font-weight: 800; border: none; border-radius: 0; background: #475569; color: white; animation: pulse-invitation 3s infinite ease-in-out; pointer-events: auto }
     `;
     document.head.appendChild(styleSheet);
 
-    // --- SEGÉDFÜGGVÉNYEK (Maradtak az eredetiek) ---
     const noon = d => new Date(d).setHours(12,0,0,0);
-    
+
     function processMessage(msg, weather, dryDays) {
         if (!msg) return "";
         try {
-            if (msg.includes("{temp}")) msg = msg.replace("{temp}", Math.round(Math.min(...weather.daily.temperature_2m_min.slice(7))));
-            if (msg.includes("{wind}")) msg = msg.replace("{wind}", Math.round(Math.max(...weather.daily.wind_gusts_10m_max.slice(7))));
-            if (msg.includes("{snow}")) msg = msg.replace("{snow}", (Math.max(...weather.daily.snowfall_sum.slice(7)) * 10 / 10).toFixed(1));
+            if (msg.includes("{temp}")) {
+                const val = Math.min(...weather.daily.temperature_2m_min.slice(7));
+                msg = msg.replace("{temp}", Math.round(val));
+            }
+            if (msg.includes("{wind}")) {
+                const val = Math.max(...weather.daily.wind_gusts_10m_max.slice(7));
+                msg = msg.replace("{wind}", Math.round(val));
+            }
+            if (msg.includes("{snow}")) {
+                const val = Math.max(...weather.daily.snowfall_sum.slice(7));
+                msg = msg.replace("{snow}", Math.round(val * 10) / 10);
+            }
             if (msg.includes("{days}")) msg = msg.replace("{days}", dryDays);
+            
             if (msg.includes("{next_rain}")) {
                 const idx = weather.daily.precipitation_sum.slice(7).findIndex(r => r >= 1);
                 if (idx !== -1) {
                     const d = new Date(weather.daily.time[idx + 7]);
-                    msg = msg.replace("{next_rain}", idx === 0 ? "Ma esik!" : `Eső: ${d.toLocaleDateString('hu-HU',{weekday:'long'})} (${Math.round(weather.daily.precipitation_sum[idx + 7])}mm).`);
+                    const rainVal = Math.round(weather.daily.precipitation_sum[idx + 7]);
+                    const rainText = idx === 0 ? "Ma esik!" : `Eső: ${d.toLocaleDateString('hu-HU',{weekday:'long'})} (${rainVal}mm).`;
+                    msg = msg.replace("{next_rain}", rainText);
                 } else msg = msg.replace("{next_rain}", "Nincs eső a láthatáron.");
             }
         } catch(e) { console.warn("Msg error", e); }
-        return msg.split(/([.!?])\s+/).map((s, i, a) => (i % 2 === 0 && s) ? `<span style="display:block; margin-bottom:5px;">${s}${a[i+1] || ""}</span>` : "").join('');
+        
+        return msg.split(/([.!?])\s+/).map((s, i, a) => 
+            (i % 2 === 0 && s) ? `<span style="display:block; margin-bottom:5px;">${s}${a[i+1] || ""}</span>` : ""
+        ).join('');
     }
 
     function checkCondition(weather, idx, key, val, dryDays) {
@@ -87,7 +99,9 @@
                 const cIdx = dayIdx - i;
                 if (cIdx < 0) continue;
                 let match = true;
-                for (const key in cond) if (!checkCondition(weather, cIdx, key, cond[key], dryDays)) match = false;
+                for (const key in cond) {
+                    if (!checkCondition(weather, cIdx, key, cond[key], dryDays)) match = false;
+                }
                 if (match) return true;
             }
             return false;
@@ -96,13 +110,16 @@
         const days = (cond.days_min && !cond.temp_above) ? 1 : (cond.days_min || 1);
         if (dayIdx < days - 1) return false;
         for (const key in cond) {
-            if (key === 'days_min' || key === 'days_max') continue;
-            for (let j = 0; j < days; j++) if (!checkCondition(weather, dayIdx - j, key, cond[key], dryDays)) return false;
+            if (key === 'days_min' || key === 'days_max') continue; 
+            const results = [];
+            for (let j = 0; j < days; j++) {
+                results.push(checkCondition(weather, dayIdx - j, key, cond[key], dryDays));
+            }
+            if (!results.every(r => r)) return false;
         }
         return true;
     }
 
-    // --- CORE LOGIC ---
     async function init() {
         const widgetDiv = document.getElementById('kertfigyelo');
         if (!widgetDiv) return;
@@ -112,23 +129,31 @@
             const sLat = localStorage.getItem('garden-lat'), sLon = localStorage.getItem('garden-lon');
             if (sLat && sLon) { lat = Number(sLat); lon = Number(sLon); isPers = true; }
 
-            let weather;
+            let weather, lastUpdate;
             const cached = localStorage.getItem('garden-weather-cache');
             if (cached) {
                 const p = JSON.parse(cached);
-                if (p.version === CACHE_VERSION && Date.now() - p.ts < 1800000) weather = p.data;
+                if (p.version === CACHE_VERSION && Date.now() - p.ts < 1800000) {
+                    weather = p.data; lastUpdate = new Date(p.ts);
+                }
             }
 
             if (!weather) {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,precipitation_sum,snowfall_sum,precipitation_probability_max&past_days=7&timezone=auto`;
+                // CACHE BURST AZ API HÍVÁSHOZ
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_gusts_10m_max,precipitation_sum,snowfall_sum,precipitation_probability_max&past_days=7&timezone=auto&v=${Date.now()}`;
                 weather = await (await fetch(url)).json();
-                localStorage.setItem('garden-weather-cache', JSON.stringify({ version: CACHE_VERSION, ts: Date.now(), data: weather }));
+                lastUpdate = new Date();
+                localStorage.setItem('garden-weather-cache', JSON.stringify({ version: CACHE_VERSION, ts: lastUpdate.getTime(), data: weather }));
             }
 
             const todayIdx = 7;
-            if (weather.daily.precipitation_sum[todayIdx] >= RAIN_THRESHOLD) localStorage.setItem('last_rain_date', weather.daily.time[todayIdx]);
-            const dryDays = localStorage.getItem('last_rain_date') ? Math.floor(Math.abs(new Date() - new Date(localStorage.getItem('last_rain_date'))) / 86400000) : 0;
+            if (weather.daily.precipitation_sum[todayIdx] >= RAIN_THRESHOLD) {
+                localStorage.setItem('last_rain_date', weather.daily.time[todayIdx]);
+            }
+            const lastRain = localStorage.getItem('last_rain_date');
+            const dryDays = lastRain ? Math.floor(Math.abs(new Date() - new Date(lastRain)) / 86400000) : 0;
 
+            // CACHE BURST A JSON-HÖZ
             const rules = await (await fetch('https://raw.githack.com/amezitlabaskert-lab/kertfigyelo/main/kertfigyelo_esemenyek.json?v=' + Date.now())).json();
             const rawResults = [];
 
@@ -150,7 +175,9 @@
             });
 
             const groupWinners = {};
-            rawResults.forEach(r => { if (r.group && (!groupWinners[r.group] || (r.priority || 0) > (groupWinners[r.group].priority || 0))) groupWinners[r.group] = r; });
+            rawResults.forEach(r => {
+                if (r.group && (!groupWinners[r.group] || (r.priority || 0) > (groupWinners[r.group].priority || 0))) groupWinners[r.group] = r;
+            });
             const filtered = rawResults.filter(r => !r.group || r.id === groupWinners[r.group].id);
 
             const mapToResult = (item) => {
@@ -158,44 +185,53 @@
                 let label = diff < 0 ? "FOLYAMATBAN" : (diff === 0 ? "MA" : diff + " NAP MÚLVA");
                 if (item.category === "seasonal") label = "SZEZONÁLIS";
                 if (item.category === "check") label = "VISSZATEKINTŐ";
+                if (item.id.includes('aszaly') && dryDays >= 7) {
+                    label = dryDays >= 14 ? `${Math.floor(dryDays/7)} HETE TART` : `${dryDays} NAPJA TART`;
+                }
                 const badgeClass = item.category === "seasonal" ? 'type-szezon' : (item.category === "check" ? 'type-szemle' : (diff <= 0 ? 'time-urgent' : (diff === 1 ? 'time-warning' : 'time-soon')));
-                return { title: item.name, range: `<span class="time-badge ${badgeClass}">${label}</span>`, msg: processMessage(item.message, weather, dryDays), type: item.type };
+                let rangeStr = `<span class="time-badge ${badgeClass}">${label}</span>`;
+                if (!["seasonal", "check"].includes(item.category) && noon(item.start) !== noon(item.end)) {
+                    rangeStr += ` — ${new Date(item.end).toLocaleDateString('hu-HU',{month:'short',day:'numeric'}).toUpperCase()}`;
+                }
+                return { title: item.name, range: rangeStr, msg: processMessage(item.message, weather, dryDays), type: item.type };
             };
 
             const alerts = filtered.filter(r => r.type === 'alert').map(mapToResult);
             let others = filtered.filter(r => r.type === 'window').map(mapToResult);
             if (!others.length) others = filtered.filter(r => ['info', 'none'].includes(r.type)).map(mapToResult);
 
-            // RENDER
             widgetDiv.innerHTML = `<div class="garden-main-card">
                 <div class="garden-title">${isPers ? 'Kertfigyelőd' : 'Kertfigyelő'}</div>
-                <button id="locBtn" class="loc-btn ${isPers?'active':''}">${isPers ? 'Vissza az alaphoz' : 'Saját kertfigyelőt!'}</button>
+                <button id="locBtn" class="loc-btn">${isPers ? 'Vissza az alaphoz' : 'Saját kertfigyelőt!'}</button>
                 <div class="section-title">Riasztások</div>${renderZone(alerts, 'alert')}
                 <div class="section-title">Teendők & Info</div>${renderZone(others, 'tasks')}
-                <div class="garden-footer">Helyszín: ${isPers ? 'Az én kertem' : 'A Mezítlábas Kert bázisa'}<br>${CACHE_VERSION}</div>
+                <div class="garden-footer">Helyszín: ${isPers ? 'Az én kertem' : 'A Mezítlábas Kert bázisa'}<br>Frissítve: ${lastUpdate.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'})} | ${CACHE_VERSION}</div>
             </div>`;
 
-            // 🟢 JAVÍTOTT GOMB LOGIKA: postMessage + In-place update
+            // GOMB LOGIKA + POSTMESSAGE HÍD
             document.getElementById('locBtn').onclick = () => {
-                const notify = (la, lo) => {
-                    // 1. Küldés a szülőnek (postMessage)
-                    window.parent.postMessage({ type: 'GARDEN_LOCATION_CHANGED', lat: la, lon: lo }, '*');
-                    // 2. Cache törlés és helyi frissítés
-                    localStorage.removeItem('garden-weather-cache');
-                    init(); 
-                };
-
                 if (isPers) { 
                     ['garden-lat','garden-lon','garden-weather-cache','last_rain_date'].forEach(k => localStorage.removeItem(k)); 
-                    notify(47.5136, 19.3735);
-                } else { 
+                    // Küldjük az üzenetet a szülőnek (alaphelyzet)
+                    window.parent.postMessage({ type: 'GARDEN_LOCATION_CHANGED', lat: 47.5136, lon: 19.3735 }, '*');
+                    location.reload(); 
+                }
+                else { 
                     navigator.geolocation.getCurrentPosition(p => {
                         const {latitude: la, longitude: lo} = p.coords;
                         if (la > 45.7 && la < 48.6 && lo > 16.1 && lo < 22.9) { 
-                            localStorage.setItem('garden-lat', la); localStorage.setItem('garden-lon', lo); 
-                            notify(la, lo);
-                        } else alert("Csak Magyarországon működik! 🇭🇺");
-                    }, (err) => alert("GPS hiba vagy letiltott hozzáférés.")); 
+                            localStorage.setItem('garden-lat', la); 
+                            localStorage.setItem('garden-lon', lo); 
+                            localStorage.removeItem('garden-weather-cache');
+                            // Küldjük az üzenetet a szülőnek (új koordináták)
+                            window.parent.postMessage({ type: 'GARDEN_LOCATION_CHANGED', lat: la, lon: lo }, '*');
+                            location.reload(); 
+                        } else { 
+                            alert("A Kertfigyelő jelenleg csak Magyarország területén tud pontos tanácsokat adni. 🇭🇺"); 
+                        }
+                    }, (err) => {
+                        alert(err.code === 1 ? "A helymeghatározás le van tiltva a böngésződben." : "Sajnos nem sikerült meghatározni a helyzetedet.");
+                    }); 
                 }
             };
 
@@ -203,7 +239,7 @@
             setup('alert', alerts.length); setup('tasks', others.length);
 
         } catch(e) { 
-            widgetDiv.innerHTML = `<div style="padding:40px 20px; text-align:center;">Hiba az adatokkal. <button onclick="location.reload()">ÚJRA</button></div>`; 
+            widgetDiv.innerHTML = `<div style="padding:40px 20px; text-align:center; background:white;"><p>Hiba történt az adatok betöltésekor.</p><button onclick="location.reload()">FRISSÍTÉS</button></div>`; 
         }
     }
 
